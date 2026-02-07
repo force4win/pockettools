@@ -390,6 +390,18 @@ button.secondary-btn:hover {
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* Align numeric columns to right */
+.glass-table th:nth-child(2),
+.glass-table th:nth-child(3),
+.glass-table th:nth-child(4),
+.glass-table th:nth-child(5),
+.glass-table td:nth-child(2),
+.glass-table td:nth-child(3),
+.glass-table td:nth-child(4),
+.glass-table td:nth-child(5) {
+    text-align: right;
+}
+
 .glass-table tr:last-child td {
     border-bottom: none;
 }
@@ -407,4 +419,18 @@ button.secondary-btn:hover {
 .delete-btn-sm:hover {
     opacity: 1;
     transform: scale(1.1);
+}
+
+.reset-row {
+    background: rgba(59, 130, 246, 0.15) !important;
+    border-top: 2px solid var(--primary-color);
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.reset-cell {
+    text-align: center !important;
+    font-weight: 700;
+    color: var(--primary-color);
+    padding: 16px 8px !important;
+    font-style: italic;
 }

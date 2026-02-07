@@ -214,7 +214,12 @@ const app = {
                     </div>
 
                     <div style="margin-top: 32px; flex: 1; display: flex; flex-direction: column;">
-                        <h3 style="margin-bottom: 12px;">Historial</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                            <h3 style="margin: 0;">Historial</h3>
+                            <button class="secondary-btn" id="fuel-reset-btn" style="padding: 4px 12px; font-size: 0.8rem;">
+                                <i class="fa-solid fa-scissors"></i> Cerrar Periodo
+                            </button>
+                        </div>
                         <div style="overflow-y: auto; flex: 1; padding-right: 4px;">
                             <table class="glass-table">
                                 <thead>
@@ -222,6 +227,7 @@ const app = {
                                         <th>Fecha</th>
                                         <th id="th-km">Km</th>
                                         <th id="th-gal">Gal</th>
+                                        <th id="th-eff">Km/Gal</th>
                                         <th id="th-cost">$$$</th>
                                         <th></th>
                                     </tr>
@@ -422,10 +428,12 @@ const app = {
                 const galInput = document.getElementById('fuel-gal');
                 const costInput = document.getElementById('fuel-cost');
                 const addBtn = document.getElementById('fuel-add-btn');
+                const resetBtn = document.getElementById('fuel-reset-btn');
                 const list = document.getElementById('fuel-list');
 
                 const thKm = document.getElementById('th-km');
                 const thGal = document.getElementById('th-gal');
+                const thEff = document.getElementById('th-eff');
                 const thCost = document.getElementById('th-cost');
 
                 // Helper to get Bogota ISO string for input
@@ -445,14 +453,39 @@ const app = {
                     // Sort by date desc
                     logs.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-                    let totalCost = 0;
-                    let totalDist = 0;
-                    let totalGal = 0;
+                    let headerCost = 0;
+                    let headerDist = 0;
+                    let headerGal = 0;
+                    let countingForHeader = true;
 
                     list.innerHTML = logs.map((log, index) => {
-                        totalCost += parseFloat(log.cost || 0);
-                        totalDist += parseFloat(log.dist || 0);
-                        totalGal += parseFloat(log.gal || 0);
+                        if (log.type === 'reset') {
+                            countingForHeader = false;
+                            const dateObj = new Date(log.date);
+                            const dateStr = dateObj.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: '2-digit' });
+                            return `
+                            <tr class="reset-row">
+                                <td colspan="6" class="reset-cell">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span><i class="fa-solid fa-scissors"></i> Cierre ${dateStr}</span>
+                                        <button class="delete-btn-sm" onclick="app.toolsLogic.fuel.remove(${index})"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
+                                    <div style="font-size: 0.9rem; margin-top: 4px; display: flex; justify-content: space-around;">
+                                        <span>$${parseFloat(log.totalCost).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                                        <span>${parseFloat(log.totalDist).toLocaleString()} Km</span>
+                                        <span>${parseFloat(log.totalGal).toFixed(3)} Gal</span>
+                                        <span>Avg: ${(log.totalDist / log.totalGal).toFixed(1)} K/G</span>
+                                    </div>
+                                </td>
+                            </tr>
+                           `;
+                        }
+
+                        if (countingForHeader) {
+                            headerCost += parseFloat(log.cost || 0);
+                            headerDist += parseFloat(log.dist || 0);
+                            headerGal += parseFloat(log.gal || 0);
+                        }
 
                         const dateObj = new Date(log.date);
 
@@ -470,8 +503,9 @@ const app = {
                         <tr>
                             <td style="font-size: 0.8rem;">${dateStr}</td>
                             <td>${log.dist}</td>
-                            <td>${log.gal}</td>
-                            <td>$${parseFloat(log.cost).toLocaleString()}</td>
+                            <td>${parseFloat(log.gal).toFixed(3)}</td>
+                            <td>${(log.dist / log.gal).toFixed(1)}</td>
+                            <td>$${parseFloat(log.cost).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                             <td style="text-align: right;">
                                 <button class="delete-btn-sm" onclick="app.toolsLogic.fuel.remove(${index})">
                                     <i class="fa-solid fa-trash"></i>
@@ -482,14 +516,18 @@ const app = {
                     }).join('');
 
                     if (logs.length > 0) {
-                        thKm.innerHTML = `Km<div style="font-size:0.8rem; color:var(--primary-color)">${totalDist.toLocaleString()}</div>`;
-                        thGal.innerHTML = `Gal<div style="font-size:0.8rem; color:var(--primary-color)">${totalGal.toLocaleString()}</div>`;
-                        thCost.innerHTML = `$$$<div style="font-size:0.8rem; color:var(--primary-color)">$${totalCost.toLocaleString()}</div>`;
+                        const eff = headerGal > 0 ? (headerDist / headerGal).toFixed(1) : '0.0';
+
+                        thKm.innerHTML = `Km<div style="font-size:0.8rem; color:var(--primary-color)">${headerDist.toLocaleString()}</div>`;
+                        thGal.innerHTML = `Gal<div style="font-size:0.8rem; color:var(--primary-color)">${headerGal.toFixed(3)}</div>`;
+                        thEff.innerHTML = `Km/Gal<div style="font-size:0.8rem; color:var(--primary-color)">${eff}</div>`;
+                        thCost.innerHTML = `$$$<div style="font-size:0.8rem; color:var(--primary-color)">$${headerCost.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>`;
                     } else {
                         thKm.textContent = 'Km';
                         thGal.textContent = 'Gal';
+                        thEff.textContent = 'Km/Gal';
                         thCost.textContent = '$$$';
-                        list.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">Sin registros</td></tr>';
+                        list.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Sin registros</td></tr>';
                     }
                 };
 
@@ -505,6 +543,7 @@ const app = {
                     }
 
                     logs.push({
+                        type: 'log',
                         date,
                         dist: parseFloat(dist),
                         gal: parseFloat(gal),
@@ -522,6 +561,44 @@ const app = {
                     render();
                 };
 
+                const addReset = () => {
+                    // Calculate current period totals
+                    let currentCost = 0;
+                    let currentDist = 0;
+                    let currentGal = 0;
+
+                    // Sort first to ensure we sum correctly from top down
+                    const sortedLogs = [...logs].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                    for (const log of sortedLogs) {
+                        if (log.type === 'reset') break;
+                        currentCost += parseFloat(log.cost || 0);
+                        currentDist += parseFloat(log.dist || 0);
+                        currentGal += parseFloat(log.gal || 0);
+                    }
+
+                    if (currentCost === 0 && currentDist === 0 && currentGal === 0) {
+                        alert('No hay datos para cerrar en este periodo.');
+                        return;
+                    }
+
+                    if (!confirm(`¿Cerrar periodo actual?\n\nTotales:\n$${currentCost.toLocaleString()}\n${currentDist} Km\n${currentGal} Gal`)) return;
+
+                    const now = new Date();
+                    const bogotaStr = now.toLocaleString('sv-SE', { timeZone: 'America/Bogota' }).replace(' ', 'T');
+
+                    logs.push({
+                        type: 'reset',
+                        date: bogotaStr,
+                        totalCost: currentCost,
+                        totalDist: currentDist,
+                        totalGal: currentGal
+                    });
+
+                    save();
+                    render();
+                };
+
                 const save = () => {
                     localStorage.setItem('pt_fuel_logs', JSON.stringify(logs));
                 };
@@ -535,6 +612,7 @@ const app = {
                 };
 
                 addBtn.onclick = add;
+                resetBtn.onclick = addReset;
                 render();
             }
         }
