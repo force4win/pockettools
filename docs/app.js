@@ -32,6 +32,12 @@ const app = {
             name: 'Conversor',
             icon: 'fa-solid fa-arrow-right-arrow-left',
             init: () => app.toolsLogic.converter.init()
+        },
+        {
+            id: 'fuel',
+            name: 'Control Gasolina',
+            icon: 'fa-solid fa-gas-pump',
+            init: () => app.toolsLogic.fuel.init()
         }
     ],
 
@@ -180,6 +186,48 @@ const app = {
                         <div class="input-group">
                             <label id="label-b">Pies</label>
                             <input type="number" id="input-b" placeholder="0">
+                        </div>
+                    </div>
+                `;
+                break;
+            case 'fuel':
+                content = `
+                    <div style="display: grid; gap: 16px;">
+                        <input type="datetime-local" id="fuel-date" class="glass-input" step="1">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                            <div class="input-group">
+                                <label>Km Recorridos</label>
+                                <input type="number" id="fuel-dist" placeholder="0">
+                            </div>
+                            <div class="input-group">
+                                <label>Galones</label>
+                                <input type="number" id="fuel-gal" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <label>Costo Total ($)</label>
+                            <input type="number" id="fuel-cost" placeholder="$">
+                        </div>
+                        <button class="primary-btn" id="fuel-add-btn">
+                            <i class="fa-solid fa-plus"></i> Guardar Tanqueo
+                        </button>
+                    </div>
+
+                    <div style="margin-top: 32px; flex: 1; display: flex; flex-direction: column;">
+                        <h3 style="margin-bottom: 12px;">Historial</h3>
+                        <div style="overflow-y: auto; flex: 1; padding-right: 4px;">
+                            <table class="glass-table">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th id="th-km">Km</th>
+                                        <th id="th-gal">Gal</th>
+                                        <th id="th-cost">$$$</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fuel-list"></tbody>
+                            </table>
                         </div>
                     </div>
                 `;
@@ -365,6 +413,129 @@ const app = {
                 typeSelect.onchange = updateLabels;
                 boxA.oninput = () => convert('a');
                 boxB.oninput = () => convert('b');
+            }
+        },
+        fuel: {
+            init() {
+                const dateInput = document.getElementById('fuel-date');
+                const distInput = document.getElementById('fuel-dist');
+                const galInput = document.getElementById('fuel-gal');
+                const costInput = document.getElementById('fuel-cost');
+                const addBtn = document.getElementById('fuel-add-btn');
+                const list = document.getElementById('fuel-list');
+
+                const thKm = document.getElementById('th-km');
+                const thGal = document.getElementById('th-gal');
+                const thCost = document.getElementById('th-cost');
+
+                // Helper to get Bogota ISO string for input
+                const setNowBogota = () => {
+                    const now = new Date();
+                    // Use sv-SE for YYYY-MM-DD HH:MM:SS format then replace space with T
+                    const bogotaStr = now.toLocaleString('sv-SE', { timeZone: 'America/Bogota' }).replace(' ', 'T');
+                    dateInput.value = bogotaStr;
+                };
+
+                // Set default date to now (Bogota)
+                setNowBogota();
+
+                let logs = JSON.parse(localStorage.getItem('pt_fuel_logs') || '[]');
+
+                const render = () => {
+                    // Sort by date desc
+                    logs.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                    let totalCost = 0;
+                    let totalDist = 0;
+                    let totalGal = 0;
+
+                    list.innerHTML = logs.map((log, index) => {
+                        totalCost += parseFloat(log.cost || 0);
+                        totalDist += parseFloat(log.dist || 0);
+                        totalGal += parseFloat(log.gal || 0);
+
+                        const dateObj = new Date(log.date);
+
+                        const dateStr = dateObj.toLocaleString('es-CO', {
+                            timeZone: 'America/Bogota',
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                        });
+
+                        return `
+                        <tr>
+                            <td style="font-size: 0.8rem;">${dateStr}</td>
+                            <td>${log.dist}</td>
+                            <td>${log.gal}</td>
+                            <td>$${parseFloat(log.cost).toLocaleString()}</td>
+                            <td style="text-align: right;">
+                                <button class="delete-btn-sm" onclick="app.toolsLogic.fuel.remove(${index})">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                       `;
+                    }).join('');
+
+                    if (logs.length > 0) {
+                        thKm.innerHTML = `Km<div style="font-size:0.8rem; color:var(--primary-color)">${totalDist.toLocaleString()}</div>`;
+                        thGal.innerHTML = `Gal<div style="font-size:0.8rem; color:var(--primary-color)">${totalGal.toLocaleString()}</div>`;
+                        thCost.innerHTML = `$$$<div style="font-size:0.8rem; color:var(--primary-color)">$${totalCost.toLocaleString()}</div>`;
+                    } else {
+                        thKm.textContent = 'Km';
+                        thGal.textContent = 'Gal';
+                        thCost.textContent = '$$$';
+                        list.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">Sin registros</td></tr>';
+                    }
+                };
+
+                const add = () => {
+                    const date = dateInput.value;
+                    const dist = distInput.value;
+                    const gal = galInput.value;
+                    const cost = costInput.value;
+
+                    if (!date || !dist || !gal || !cost) {
+                        alert('Por favor completa todos los campos');
+                        return;
+                    }
+
+                    logs.push({
+                        date,
+                        dist: parseFloat(dist),
+                        gal: parseFloat(gal),
+                        cost: parseFloat(cost)
+                    });
+
+                    save();
+
+                    // Clear inputs but refresh date to now
+                    distInput.value = '';
+                    galInput.value = '';
+                    costInput.value = '';
+                    setNowBogota();
+
+                    render();
+                };
+
+                const save = () => {
+                    localStorage.setItem('pt_fuel_logs', JSON.stringify(logs));
+                };
+
+                this.remove = (index) => {
+                    if (confirm('¿Borrar registro?')) {
+                        logs.splice(index, 1);
+                        save();
+                        render();
+                    }
+                };
+
+                addBtn.onclick = add;
+                render();
             }
         }
     }
