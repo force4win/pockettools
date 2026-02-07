@@ -52,6 +52,12 @@ const app = {
             name: 'Tareas & Estadísticas',
             icon: 'fa-solid fa-list-check',
             init: () => app.toolsLogic.tasks.init()
+        },
+        {
+            id: 'timer',
+            name: 'Cuenta Regresiva',
+            icon: 'fa-solid fa-hourglass-half',
+            init: () => app.toolsLogic.timer.init()
         }
     ],
 
@@ -493,6 +499,44 @@ const app = {
                                 <i class="fa-solid fa-file-csv"></i> Exportar Reporte
                             </button>
                         </div>
+                    </div>
+                `;
+                break;
+            case 'timer':
+                content = `
+                     <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 24px;">
+                        
+                        <!-- Inputs -->
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <div class="input-group" style="text-align: center; margin:0;">
+                                <label>Min</label>
+                                <input type="number" id="timer-min" value="5" min="0" max="999" style="width: 80px; text-align: center; font-size: 1.5rem;">
+                            </div>
+                            <span style="font-size: 2rem; font-weight: bold; margin-top: 14px;">:</span>
+                            <div class="input-group" style="text-align: center; margin:0;">
+                                <label>Seg</label>
+                                <input type="number" id="timer-sec" value="0" min="0" max="59" style="width: 80px; text-align: center; font-size: 1.5rem;">
+                            </div>
+                        </div>
+
+                        <!-- Display -->
+                        <div id="timer-display" class="counter-display" style="font-family: monospace; font-size: 5rem; line-height: 1;">
+                            05:00
+                        </div>
+
+                        <!-- Controls -->
+                        <div class="counter-controls">
+                            <button id="btn-timer-reset" class="counter-btn btn-reset" title="Reiniciar">
+                                <i class="fa-solid fa-rotate-right"></i>
+                            </button>
+                            <button id="btn-timer-toggle" class="counter-btn btn-plus" style="width: 80px; height: 80px; font-size: 2rem;" title="Iniciar/Pausar">
+                                <i class="fa-solid fa-play"></i>
+                            </button>
+                        </div>
+                        
+                        <p style="text-align:center; color: var(--text-muted); font-size: 0.9rem; margin-top: 16px;">
+                            <i class="fa-solid fa-volume-high"></i> La alarma sonará al finalizar.
+                        </p>
                     </div>
                 `;
                 break;
@@ -1653,10 +1697,151 @@ const app = {
                 switchTab('list');
                 renderTasks();
 
+
                 // Set default date filters
                 const t = getToday();
                 startInput.value = t;
                 endInput.value = t;
+            }
+        },
+
+        timer: {
+            interval: null,
+            timeLeft: 300,
+            isRunning: false,
+
+            init() {
+                const minInput = document.getElementById('timer-min');
+                const secInput = document.getElementById('timer-sec');
+                const display = document.getElementById('timer-display');
+                const btnToggle = document.getElementById('btn-timer-toggle');
+                const btnReset = document.getElementById('btn-timer-reset');
+
+                // Allow audio context to be created on user interaction
+                let audioCtx;
+
+                const playAlarm = () => {
+                    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+                    // Create oscillator for beep
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime); // High pitch A5
+
+                    // Beep pattern: Beep-Beep-Beep
+                    const now = audioCtx.currentTime;
+
+                    // Beep 1
+                    gain.gain.setValueAtTime(0.5, now);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.2);
+
+                    // Beep 2
+                    gain.gain.setValueAtTime(0.5, now + 0.4);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.6);
+
+                    // Beep 3
+                    gain.gain.setValueAtTime(0.5, now + 0.8);
+                    gain.gain.linearRampToValueAtTime(0, now + 1.0);
+
+                    osc.start(now);
+                    osc.stop(now + 1.2);
+                };
+
+                const updateDisplay = () => {
+                    const m = Math.floor(this.timeLeft / 60).toString().padStart(2, '0');
+                    const s = (this.timeLeft % 60).toString().padStart(2, '0');
+                    display.textContent = `${m}:${s}`;
+
+                    // Update title for background awareness
+                    if (this.isRunning) document.title = `${m}:${s} - Timer`;
+                    else document.title = 'PocketTools';
+                };
+
+                const setFromInputs = () => {
+                    if (this.isRunning) return;
+                    let m = parseInt(minInput.value) || 0;
+                    let s = parseInt(secInput.value) || 0;
+                    this.timeLeft = m * 60 + s;
+                    updateDisplay();
+                };
+
+                minInput.oninput = setFromInputs;
+                secInput.oninput = setFromInputs;
+
+                btnToggle.onclick = () => {
+                    // Ensure audio context is ready on first click
+                    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                    if (this.isRunning) {
+                        // Pause
+                        clearInterval(this.interval);
+                        this.isRunning = false;
+                        btnToggle.innerHTML = '<i class="fa-solid fa-play"></i>';
+                        btnToggle.classList.remove('btn-minus');
+                        btnToggle.classList.add('btn-plus');
+                        minInput.disabled = false;
+                        secInput.disabled = false;
+                        document.title = 'PocketTools';
+                    } else {
+                        // Start
+                        if (this.timeLeft <= 0) return;
+
+                        this.isRunning = true;
+                        btnToggle.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                        btnToggle.classList.remove('btn-plus');
+                        btnToggle.classList.add('btn-minus');
+
+                        minInput.disabled = true;
+                        secInput.disabled = true;
+
+                        this.interval = setInterval(() => {
+                            this.timeLeft--;
+                            updateDisplay();
+
+                            if (this.timeLeft <= 0) {
+                                clearInterval(this.interval);
+                                this.isRunning = false;
+                                updateDisplay();
+
+                                // Reset UI
+                                btnToggle.innerHTML = '<i class="fa-solid fa-play"></i>';
+                                btnToggle.classList.remove('btn-minus');
+                                btnToggle.classList.add('btn-plus');
+                                minInput.disabled = false;
+                                secInput.disabled = false;
+
+                                playAlarm();
+                                alert("¡Tiempo Terminado!");
+                                document.title = '¡Tiempo!';
+                            }
+                        }, 1000);
+                    }
+                };
+
+                btnReset.onclick = () => {
+                    if (this.interval) clearInterval(this.interval);
+                    this.isRunning = false;
+                    btnToggle.innerHTML = '<i class="fa-solid fa-play"></i>';
+                    btnToggle.classList.remove('btn-minus');
+                    btnToggle.classList.add('btn-plus');
+                    minInput.disabled = false;
+                    secInput.disabled = false;
+                    document.title = 'PocketTools';
+
+                    // Default reset to user inputs or 5 min if 0
+                    setFromInputs();
+                };
+
+                // Init state
+                this.isRunning = false;
+                if (this.interval) clearInterval(this.interval);
+                setFromInputs();
             }
         }
     }
