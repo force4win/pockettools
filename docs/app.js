@@ -1,6 +1,7 @@
 const app = {
     state: {
         activeTool: null,
+        theme: 'dark'
     },
     tools: [
         {
@@ -43,6 +44,7 @@ const app = {
 
     init() {
         this.cacheDOM();
+        this.loadTheme();
         this.renderDashboard();
         this.bindEvents();
         this.loadLastState();
@@ -55,12 +57,14 @@ const app = {
             toolContent: document.getElementById('tool-content'),
             toolTitle: document.getElementById('current-tool-title'),
             backBtn: document.getElementById('back-btn'),
+            themeBtn: document.getElementById('theme-toggle'),
             grid: document.getElementById('tools-grid')
         };
     },
 
     bindEvents() {
         this.dom.backBtn.addEventListener('click', () => this.showDashboard());
+        this.dom.themeBtn.addEventListener('click', () => this.toggleTheme());
     },
 
     renderDashboard() {
@@ -104,6 +108,60 @@ const app = {
         if (lastTool) {
             this.openTool(lastTool);
         }
+    },
+
+    loadTheme() {
+        const saved = localStorage.getItem('pt_theme') || 'dark';
+        this.state.theme = saved;
+        this.applyTheme();
+    },
+
+    toggleTheme() {
+        const themes = ['dark', 'light', 'matrix', 'kids'];
+        const list = ['dark', 'light', 'matrix', 'kids'];
+        let currentIndex = list.indexOf(this.state.theme);
+        if (currentIndex === -1) currentIndex = 0;
+
+        const nextIndex = (currentIndex + 1) % list.length;
+        this.state.theme = list[nextIndex];
+
+        localStorage.setItem('pt_theme', this.state.theme);
+        this.applyTheme();
+    },
+
+    applyTheme() {
+        const theme = this.state.theme;
+        const root = document.documentElement;
+
+        // Clear previous theme attributes or set new one
+        if (theme === 'dark') {
+            root.removeAttribute('data-theme');
+        } else {
+            root.setAttribute('data-theme', theme);
+        }
+
+        // Update Icon based on theme
+        const icon = this.dom.themeBtn.querySelector('i');
+        icon.className = ''; // remove all classes first
+
+        switch (theme) {
+            case 'light':
+                icon.className = 'fa-solid fa-sun';
+                icon.style.color = '#f59e0b';
+                break;
+            case 'matrix':
+                icon.className = 'fa-solid fa-terminal';
+                icon.style.color = '#00ff41';
+                break;
+            case 'kids':
+                icon.className = 'fa-solid fa-shapes';
+                icon.style.color = '#ef4444';
+                break;
+            default: // dark
+                icon.className = 'fa-solid fa-moon';
+                icon.style.color = '';
+        }
+
     },
 
     renderToolInterface(toolId) {
