@@ -67,6 +67,59 @@
     --shadow: 4px 4px 0px rgba(0, 0, 0, 0.1);
 }
 
+[data-theme="cyberpunk"] {
+    --bg-color: #050505;
+    --surface-color: rgba(20, 20, 20, 0.9);
+    --surface-border: #00ffff;
+    --primary-color: #00ffff;
+    /* Cyan Neon */
+    --primary-hover: #ff00ff;
+    /* Pink Neon */
+    --text-color: #f0f0f0;
+    --text-muted: #00cccc;
+    --input-bg: #000;
+    --h1-gradient: linear-gradient(90deg, #ff00ff, #00ffff);
+    --shadow: 0 0 15px rgba(0, 255, 255, 0.4), 4px 4px 0 #ff00ff;
+    --glow: 0 0 20px rgba(255, 0, 255, 0.6);
+    --font-family: 'Courier New', monospace;
+    --radius: 4px;
+}
+
+[data-theme="nordic"] {
+    --bg-color: #2e3440;
+    /* Polar Night Dark */
+    --surface-color: rgba(59, 66, 82, 0.8);
+    /* Polar Night Light */
+    --surface-border: #4c566a;
+    --primary-color: #88c0d0;
+    /* Frost */
+    --primary-hover: #81a1c1;
+    --text-color: #eceff4;
+    /* Snow Storm */
+    --text-muted: #d8dee9;
+    --input-bg: rgba(46, 52, 64, 0.6);
+    --h1-gradient: linear-gradient(135deg, #8fbcbb, #88c0d0, #81a1c1);
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --radius: 8px;
+}
+
+[data-theme="forest"] {
+    --bg-color: #1a2f1c;
+    /* Deep Forest Green */
+    --surface-color: rgba(45, 74, 49, 0.7);
+    --surface-border: #3d5a40;
+    --primary-color: #95d5b2;
+    /* Soft Light Green */
+    --primary-hover: #74c69d;
+    --text-color: #d8f3dc;
+    /* Pale Green */
+    --text-muted: #b7e4c7;
+    --input-bg: rgba(26, 47, 28, 0.6);
+    --h1-gradient: linear-gradient(135deg, #d8f3dc, #95d5b2);
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --radius: 20px;
+}
+
 * {
     box-sizing: border-box;
     margin: 0;

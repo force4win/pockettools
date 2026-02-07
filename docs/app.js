@@ -1,7 +1,8 @@
 const app = {
     state: {
         activeTool: null,
-        theme: 'dark'
+        theme: 'dark', // Default dashboard theme
+        toolThemes: {} // Map toolId -> theme name
     },
     tools: [
         {
@@ -58,13 +59,15 @@ const app = {
             toolTitle: document.getElementById('current-tool-title'),
             backBtn: document.getElementById('back-btn'),
             themeBtn: document.getElementById('theme-toggle'),
+            toolThemeBtn: document.getElementById('tool-theme-toggle'),
             grid: document.getElementById('tools-grid')
         };
     },
 
     bindEvents() {
         this.dom.backBtn.addEventListener('click', () => this.showDashboard());
-        this.dom.themeBtn.addEventListener('click', () => this.toggleTheme());
+        this.dom.themeBtn.addEventListener('click', () => this.toggleTheme('global'));
+        this.dom.toolThemeBtn.addEventListener('click', () => this.toggleTheme('tool'));
     },
 
     renderDashboard() {
@@ -93,6 +96,7 @@ const app = {
 
         // Save state
         localStorage.setItem('pt_last_active', toolId);
+        this.applyTheme(); // Apply tool-specific theme
     },
 
     showDashboard() {
@@ -101,6 +105,7 @@ const app = {
         this.dom.toolContainer.classList.add('hidden');
         this.dom.dashboard.classList.remove('hidden');
         localStorage.removeItem('pt_last_active');
+        this.applyTheme(); // Re-apply global theme
     },
 
     loadLastState() {
@@ -111,38 +116,75 @@ const app = {
     },
 
     loadTheme() {
-        const saved = localStorage.getItem('pt_theme') || 'dark';
-        this.state.theme = saved;
+        const savedGlobal = localStorage.getItem('pt_theme') || 'dark';
+        const savedTools = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+
+        this.state.theme = savedGlobal;
+        this.state.toolThemes = savedTools;
+
         this.applyTheme();
     },
 
-    toggleTheme() {
-        const themes = ['dark', 'light', 'matrix', 'kids'];
-        const list = ['dark', 'light', 'matrix', 'kids'];
-        let currentIndex = list.indexOf(this.state.theme);
+    toggleTheme(context = 'global') {
+        const list = ['dark', 'light', 'matrix', 'kids', 'cyberpunk', 'nordic', 'forest'];
+        let currentTheme = 'dark';
+
+        if (context === 'global') {
+            currentTheme = this.state.theme;
+        } else if (this.state.activeTool) {
+            currentTheme = this.state.toolThemes[this.state.activeTool] || 'dark';
+        }
+
+        let currentIndex = list.indexOf(currentTheme);
         if (currentIndex === -1) currentIndex = 0;
 
         const nextIndex = (currentIndex + 1) % list.length;
-        this.state.theme = list[nextIndex];
+        const newTheme = list[nextIndex];
 
-        localStorage.setItem('pt_theme', this.state.theme);
+        if (context === 'global') {
+            this.state.theme = newTheme;
+            localStorage.setItem('pt_theme', newTheme);
+        } else if (this.state.activeTool) {
+            this.state.toolThemes[this.state.activeTool] = newTheme;
+            localStorage.setItem('pt_tool_themes', JSON.stringify(this.state.toolThemes));
+        }
+
         this.applyTheme();
     },
 
     applyTheme() {
-        const theme = this.state.theme;
+        // Determine which theme to apply based on view
+        let themeToApply = this.state.theme; // Default to global
+
+        // If viewing a tool, check for override
+        if (this.state.activeTool) {
+            themeToApply = this.state.toolThemes[this.state.activeTool] || 'dark';
+        }
+
         const root = document.documentElement;
 
         // Clear previous theme attributes or set new one
-        if (theme === 'dark') {
+        if (themeToApply === 'dark') {
             root.removeAttribute('data-theme');
         } else {
-            root.setAttribute('data-theme', theme);
+            root.setAttribute('data-theme', themeToApply);
         }
 
-        // Update Icon based on theme
-        const icon = this.dom.themeBtn.querySelector('i');
-        icon.className = ''; // remove all classes first
+        // Update Icons based on theme
+        // Update both buttons so icons are correct when switching views
+        // Global Button
+        this.updateThemeIcon(this.dom.themeBtn, this.state.theme);
+
+        // Tool Button (if tool active)
+        if (this.state.activeTool) {
+            const toolTheme = this.state.toolThemes[this.state.activeTool] || 'dark';
+            this.updateThemeIcon(this.dom.toolThemeBtn, toolTheme);
+        }
+    },
+
+    updateThemeIcon(btn, theme) {
+        const icon = btn.querySelector('i');
+        icon.className = '';
 
         switch (theme) {
             case 'light':
@@ -157,11 +199,22 @@ const app = {
                 icon.className = 'fa-solid fa-shapes';
                 icon.style.color = '#ef4444';
                 break;
+            case 'cyberpunk':
+                icon.className = 'fa-solid fa-robot';
+                icon.style.color = '#00ffff';
+                break;
+            case 'nordic':
+                icon.className = 'fa-regular fa-snowflake';
+                icon.style.color = '#88c0d0';
+                break;
+            case 'forest':
+                icon.className = 'fa-solid fa-tree';
+                icon.style.color = '#95d5b2';
+                break;
             default: // dark
                 icon.className = 'fa-solid fa-moon';
                 icon.style.color = '';
         }
-
     },
 
     renderToolInterface(toolId) {
