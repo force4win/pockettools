@@ -46,6 +46,12 @@ const app = {
             name: 'Sudoku Master',
             icon: 'fa-solid fa-chess-board',
             init: () => app.toolsLogic.sudoku.init()
+        },
+        {
+            id: 'tasks',
+            name: 'Tareas & Estadísticas',
+            icon: 'fa-solid fa-list-check',
+            init: () => app.toolsLogic.tasks.init()
         }
     ],
 
@@ -420,6 +426,73 @@ const app = {
                             </button>
                         </div>
 
+                    </div>
+                `;
+                break;
+            case 'tasks':
+                content = `
+                    <div style="display: flex; flex-direction: column; gap: 16px; height: 100%;">
+                        <!-- Tabs -->
+                        <div style="display: flex; gap: 12px; border-bottom: 1px solid var(--surface-border); padding-bottom: 12px;">
+                            <button id="tab-tasks-list" class="secondary-btn" style="flex:1; background: var(--surface-border);">Lista</button>
+                            <button id="tab-tasks-stats" class="secondary-btn" style="flex:1;">Estadísticas</button>
+                        </div>
+                        
+                        <!-- VIEW: LIST -->
+                        <div id="view-tasks-list" style="display: flex; flex-direction: column; gap: 16px; flex: 1;">
+                            <div class="input-group" style="display: flex; gap: 8px; margin-bottom: 0;">
+                                <input type="text" id="new-task-input" placeholder="Nueva tarea..." style="flex:1;">
+                                <button id="add-task-btn" class="primary-btn" style="width: auto; padding: 0 20px;">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </div>
+                            
+                            <div style="flex: 1; overflow-y: auto;">
+                                <ul id="task-list" style="list-style: none; padding: 0;"></ul>
+                            </div>
+                            
+                             <div class="stats" style="text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+                                Tareas hoy: <span id="completed-today-count" style="color: var(--text-color); font-weight: bold;">0</span>
+                            </div>
+
+                            <button id="btn-test-data" class="secondary-btn" style="display: none; width: 100%; border-style: dashed; opacity: 0.7;">
+                                🎲 Generar Datos Prueba
+                            </button>
+                        </div>
+
+                        <!-- VIEW: STATS -->
+                        <div id="view-tasks-stats" style="display: none; flex-direction: column; gap: 16px; flex: 1; overflow-y: auto;">
+                            
+                            <div class="date-filters" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                <div class="input-group" style="margin:0;">
+                                    <label>Desde</label>
+                                    <input type="date" id="stats-start">
+                                </div>
+                                <div class="input-group" style="margin:0;">
+                                    <label>Hasta</label>
+                                    <input type="date" id="stats-end">
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 8px;">
+                                <button id="btn-filter-today" class="secondary-btn" style="flex:1;">Hoy</button>
+                                <button id="btn-filter-apply" class="primary-btn" style="flex:1;">Filtrar</button>
+                            </div>
+
+                             <div class="chart-container" style="background: var(--input-bg); padding: 12px; border-radius: var(--radius); height: 250px;">
+                                <canvas id="stats-chart"></canvas>
+                            </div>
+
+                            <div style="overflow-x: auto;">
+                                <table class="glass-table" id="stats-table">
+                                    <!-- Populated by JS -->
+                                </table>
+                            </div>
+
+                             <button id="btn-export-csv" class="secondary-btn" style="width: 100%;">
+                                <i class="fa-solid fa-file-csv"></i> Exportar Reporte
+                            </button>
+                        </div>
                     </div>
                 `;
                 break;
@@ -1232,7 +1305,359 @@ const app = {
                 switchTab('play');
                 startNewGame();
             }
+        },
 
+        tasks: {
+            init() {
+                // Elements
+                const tabList = document.getElementById('tab-tasks-list');
+                const tabStats = document.getElementById('tab-tasks-stats');
+                const viewList = document.getElementById('view-tasks-list');
+                const viewStats = document.getElementById('view-tasks-stats');
+
+                const taskInput = document.getElementById('new-task-input');
+                const addTaskBtn = document.getElementById('add-task-btn');
+                const taskList = document.getElementById('task-list');
+                const todayCountEl = document.getElementById('completed-today-count');
+                const testBtn = document.getElementById('btn-test-data');
+
+                // Stats Elements
+                const startInput = document.getElementById('stats-start');
+                const endInput = document.getElementById('stats-end');
+                const filterTodayBtn = document.getElementById('btn-filter-today');
+                const filterApplyBtn = document.getElementById('btn-filter-apply');
+                const exportBtn = document.getElementById('btn-export-csv');
+                const statsTable = document.getElementById('stats-table');
+
+                let statsChartInstance = null;
+
+                // State
+                let tasks = JSON.parse(localStorage.getItem("pt_tasks")) || [];
+                let stats = JSON.parse(localStorage.getItem("pt_tasks_stats")) || { completedToday: 0, completedTotal: 0, lastDate: getToday(), history: {} };
+
+                // --- HELPERS ---
+                function getToday(d = new Date()) {
+                    return new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Bogota' }).format(d);
+                }
+
+                function saveData() {
+                    localStorage.setItem("pt_tasks", JSON.stringify(tasks));
+                    localStorage.setItem("pt_tasks_stats", JSON.stringify(stats));
+                }
+
+                // Check new day
+                if (stats.lastDate !== getToday()) {
+                    tasks.forEach(t => t.completed = false);
+                    stats.completedToday = 0;
+                    stats.lastDate = getToday();
+                    saveData();
+                }
+
+                // --- TABS ---
+                const switchTab = (mode) => {
+                    if (mode === 'list') {
+                        viewList.style.display = 'flex';
+                        viewStats.style.display = 'none';
+                        tabList.style.background = 'var(--surface-border)';
+                        tabStats.style.background = 'transparent';
+                    } else {
+                        viewList.style.display = 'none';
+                        viewStats.style.display = 'flex';
+                        tabList.style.background = 'transparent';
+                        tabStats.style.background = 'var(--surface-border)';
+                        renderStats();
+                    }
+                };
+                tabList.onclick = () => switchTab('list');
+                tabStats.onclick = () => switchTab('stats');
+
+                // --- LIST LOGIC ---
+                const renderTasks = () => {
+                    taskList.innerHTML = "";
+                    tasks.forEach((task, index) => {
+                        const li = document.createElement("li");
+                        li.style.cssText = `
+                            display: flex; align-items: center; justify-content: space-between;
+                            margin-bottom: 8px; background: var(--surface-color); padding: 12px;
+                            border-radius: 8px; transition: all 0.2s; cursor: grab;
+                        `;
+                        li.draggable = true;
+                        if (task.completed) {
+                            li.style.opacity = '0.6';
+                        }
+
+                        const leftDiv = document.createElement('div');
+                        leftDiv.style.cssText = 'display: flex; align-items: center; gap: 12px; flex: 1;';
+
+                        const checkbox = document.createElement("input");
+                        checkbox.type = "checkbox";
+                        checkbox.checked = task.completed;
+                        checkbox.style.cssText = 'width: 20px; height: 20px; accent-color: var(--primary-color); cursor: pointer;';
+
+                        const span = document.createElement("span");
+                        span.textContent = task.text;
+                        if (task.completed) span.style.textDecoration = 'line-through';
+
+                        leftDiv.appendChild(checkbox);
+                        leftDiv.appendChild(span);
+
+                        const delBtn = document.createElement("button");
+                        delBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+                        delBtn.className = 'delete-btn-sm';
+                        delBtn.style.fontSize = '1.1rem';
+
+                        // Events
+                        delBtn.onclick = () => {
+                            if (task.completed && stats.completedToday > 0) stats.completedToday--;
+                            tasks.splice(index, 1);
+                            saveData();
+                            renderTasks();
+                        };
+
+                        checkbox.onchange = () => {
+                            task.completed = checkbox.checked;
+                            const today = getToday();
+                            if (checkbox.checked) {
+                                stats.completedToday++;
+                                stats.completedTotal++;
+                                if (!stats.history[today]) stats.history[today] = {};
+                                stats.history[today][task.text] = true;
+                                span.style.textDecoration = 'line-through';
+                                li.style.opacity = '0.6';
+                            } else {
+                                stats.completedToday--;
+                                if (stats.history[today]) stats.history[today][task.text] = false;
+                                span.style.textDecoration = 'none';
+                                li.style.opacity = '1';
+                            }
+                            saveData();
+                            todayCountEl.textContent = stats.completedToday;
+                        };
+
+                        // Drag Events (Basic)
+                        li.ondragstart = (e) => {
+                            li.classList.add('dragging');
+                            e.dataTransfer.effectAllowed = 'move';
+                            // Store index
+                            e.dataTransfer.setData('text/plain', index);
+                        };
+                        li.ondragend = () => {
+                            li.classList.remove('dragging');
+                            saveTasksOrder();
+                        };
+
+                        li.appendChild(leftDiv);
+                        li.appendChild(delBtn);
+                        taskList.appendChild(li);
+                    });
+
+                    todayCountEl.textContent = stats.completedToday;
+                };
+
+                const saveTasksOrder = () => {
+                    // Update tasks array based on DOM
+                    // This simple implementation requires re-reading DOM
+                    // For brevity, we assume visual drag works and user is happy. 
+                    // To strictly persist order, we need full dragover logic.
+                    // Implementation of full drag sort here:
+                };
+
+                // Add Drag Over Logic for container
+                taskList.ondragover = (e) => {
+                    e.preventDefault();
+                    const dragging = document.querySelector('.dragging');
+                    const siblings = [...taskList.querySelectorAll('li:not(.dragging)')];
+                    const nextInternal = siblings.find(sib => {
+                        return e.clientY <= sib.getBoundingClientRect().top + sib.offsetHeight / 2;
+                    });
+                    taskList.insertBefore(dragging, nextInternal);
+                };
+
+                // Override saveTasksOrder to actually save
+                const realSaveOrder = () => {
+                    const newTasks = [];
+                    taskList.querySelectorAll('li').forEach(li => {
+                        const text = li.querySelector('span').textContent;
+                        const checked = li.querySelector('input').checked;
+                        newTasks.push({ text, completed: checked });
+                    });
+                    tasks = newTasks;
+                    saveData();
+                };
+                taskList.ondragend = (e) => {
+                    e.target.classList.remove('dragging');
+                    realSaveOrder();
+                };
+
+
+                addTaskBtn.onclick = () => {
+                    const val = taskInput.value.trim();
+                    if (val) {
+                        tasks.push({ text: val, completed: false });
+                        taskInput.value = '';
+                        // testBtn.style.display = 'none';
+                        saveData();
+                        renderTasks();
+                    }
+                };
+
+                // Test Data Gen
+                taskInput.oninput = () => {
+                    if (taskInput.value.toLowerCase().trim() === 'test') {
+                        testBtn.style.display = 'block';
+                    } else {
+                        testBtn.style.display = 'none';
+                    }
+                };
+
+                testBtn.onclick = () => {
+                    if (tasks.length === 0) {
+                        tasks.push({ text: "Aprender JS", completed: false });
+                        tasks.push({ text: "Hacer ejercicio", completed: false });
+                        tasks.push({ text: "Leer documentacion", completed: false });
+                    }
+                    const today = new Date();
+                    for (let i = 0; i < 5; i++) { // Generate 5 days
+                        const d = new Date(today);
+                        d.setDate(today.getDate() - i);
+                        const dayStr = getToday(d);
+                        if (!stats.history[dayStr]) stats.history[dayStr] = {};
+                        tasks.forEach(t => {
+                            stats.history[dayStr][t.text] = Math.random() > 0.5;
+                        });
+                    }
+                    saveData();
+                    renderTasks();
+                    alert('Datos de prueba generados');
+                };
+
+                // --- STATS LOGIC ---
+                const renderStats = () => {
+                    if (!window.Chart) return;
+
+                    const start = startInput.value;
+                    const end = endInput.value;
+
+                    // Filter days
+                    const days = Object.keys(stats.history).sort().filter(day => {
+                        if (start && day < start) return false;
+                        if (end && day > end) return false;
+                        return true;
+                    });
+
+                    // Prepare Chart Data
+                    const taskLabels = tasks.map(t => t.text);
+                    const completionCounts = tasks.map(task => {
+                        let count = 0;
+                        days.forEach(day => {
+                            if (stats.history[day] && stats.history[day][task.text]) count++;
+                        });
+                        return count;
+                    });
+
+                    // Chart
+                    const ctx = document.getElementById('stats-chart').getContext('2d');
+                    if (statsChartInstance) statsChartInstance.destroy();
+
+                    statsChartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        plugins: [ChartDataLabels],
+                        data: {
+                            labels: taskLabels,
+                            datasets: [{
+                                label: 'Completado',
+                                data: completionCounts,
+                                backgroundColor: '#3b82f6',
+                                borderRadius: 4,
+                                barThickness: 20
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                datalabels: {
+                                    color: '#fff',
+                                    anchor: 'end',
+                                    align: 'end',
+                                    formatter: (v) => v > 0 ? v : ''
+                                }
+                            },
+                            scales: {
+                                x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+                                y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#cbd5e1' } }
+                            }
+                        }
+                    });
+
+                    // Table
+                    statsTable.innerHTML = '';
+                    const headerRow = document.createElement('tr');
+                    headerRow.innerHTML = '<th>Tarea</th>' + days.map(d => `<th>${d.slice(5)}</th>`).join('');
+                    statsTable.appendChild(headerRow);
+
+                    tasks.forEach(task => {
+                        const tr = document.createElement('tr');
+                        let content = `<td>${task.text}</td>`;
+                        days.forEach(d => {
+                            const done = stats.history[d] && stats.history[d][task.text];
+                            content += `<td style="color: ${done ? 'var(--primary-color)' : 'var(--text-muted)'}; text-align: center;">
+                                ${done ? '<i class="fa-solid fa-check"></i>' : '·'}
+                            </td>`;
+                        });
+                        tr.innerHTML = content;
+                        statsTable.appendChild(tr);
+                    });
+                };
+
+                // Filters
+                filterApplyBtn.onclick = renderStats;
+                filterTodayBtn.onclick = () => {
+                    const t = getToday();
+                    startInput.value = t;
+                    endInput.value = t;
+                    renderStats();
+                };
+
+                // Export
+                exportBtn.onclick = () => {
+                    const start = startInput.value;
+                    const end = endInput.value;
+                    const days = Object.keys(stats.history).sort().filter(day => {
+                        if (start && day < start) return false;
+                        if (end && day > end) return false;
+                        return true;
+                    });
+
+                    let csv = "Tarea," + days.join(",") + "\n";
+                    tasks.forEach(task => {
+                        let row = `"${task.text}"`;
+                        days.forEach(day => {
+                            const done = stats.history[day] && stats.history[day][task.text];
+                            row += "," + (done ? "SI" : "NO");
+                        });
+                        csv += row + "\n";
+                    });
+
+                    const blob = new Blob([csv], { type: 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `reporte_tareas_${getToday()}.csv`;
+                    link.click();
+                };
+
+                // Init
+                switchTab('list');
+                renderTasks();
+
+                // Set default date filters
+                const t = getToday();
+                startInput.value = t;
+                endInput.value = t;
+            }
         }
     }
 };
@@ -1244,4 +1669,3 @@ window.app = app;
 document.addEventListener('DOMContentLoaded', () => {
     app.init();
 });
-
