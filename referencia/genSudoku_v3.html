@@ -1,0 +1,363 @@
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+</head>
+
+  
+
+  <style>
+	body {background-color: #474b4e;}
+	h1  {	color: EF8871;
+			font-family: verdana;
+			font-size: 200%;}
+			
+	p    {color: black;
+		  font-size: 200%;}
+	
+	button {background-color:EF8871;
+			font-size: 200%;
+			margin: 10px 0px;
+			cursor: pointer;}
+			
+	input  {background-color:#65727c;
+			font-size: 180%;}
+			
+	textarea  {background-color:#65727c;
+			   font-size: 200%;}
+			   
+	select   {background-color:#65727c;
+			   font-size: 100%;}
+				
+	span	{background-color:EF8871;
+			font-size: 200%;
+			margin: 10px 0px;
+			cursor: pointer;}
+			
+	input	{background-color:FFFFFF;
+			font-size: 200%;
+			margin: 10px 0px;
+			cursor: pointer;}
+			   
+			
+	</style>
+	
+	  
+  
+  
+  <body>
+  <script type="text/javascript">
+
+function generateSudoku() {
+	let cont = 0; 
+	let board = [];
+	do{
+	  
+	  for (let i = 0; i < 9; i++) {
+		board[i] = [];
+		for (let j = 0; j < 9; j++) {
+		  board[i][j] = 0;
+		}
+	  }
+	  cont++;
+	}while( !fillSudoku(board));
+	
+	//alert("El siguiente sudoku se genero despues de " + cont + " intentos");
+	return board;
+}
+
+function fillSudoku(board) {
+	let cont = 0;
+	for(let i = 0 ;i < 9;i=i+3){
+		for(let j = 0 ;j < 9;j=j+3){
+			cont = 0 ;
+			let resultado = false;
+			do {
+				resultado = loadSeccion(board,i,j);
+				cont++;
+				if(cont >= 1000){
+					
+					return false;
+				}
+			} while(!resultado)
+
+		}
+	}
+	
+	return true;
+}
+
+function removeNumbers(board, totalNum) {
+	
+	let iRem,jRem;
+	var cont = 0;
+	
+	while (cont<totalNum){
+	
+		iRem = Math.floor(Math.random() * 9);
+		jRem = Math.floor(Math.random() * 9);
+	
+		if (board[iRem][jRem] != " "){
+			board[iRem][jRem] = " ";
+			cont++;
+		}		
+	}
+}
+
+function loadSeccion(board, seccionRow, seccionCol) {
+
+	let numbersAdd = [];
+	
+	let forceBreak = 0;
+	for(let i = (seccionRow) ;i< ((seccionRow)+3);i++){
+		for(let j = (seccionCol) ;j< ((seccionCol)+3); j++){
+			let numero = 0;
+			let numbersTry = [];
+			do {
+				if((numbersTry.length + numbersAdd.length)==9){
+					//alert('no se puede');
+					for(let ii = (seccionRow) ;ii< ((seccionRow)+3);ii++){
+						for(let jj = (seccionCol) ;jj< ((seccionCol)+3); jj++){
+							board[ii][jj]=0;
+						}
+					}
+					return false;
+				}
+				do {
+					
+					numero = Math.floor(Math.random() * 9)+1;
+					
+				}
+				while(numbersAdd.includes(numero));
+				
+				
+				if(!numbersTry.includes(numero)){
+					numbersTry.push(numero);
+				}
+			}while(!isValid(board,i,j,numero));
+			
+			board[i][j] = numero;
+			numbersAdd.push(numero);
+			
+		}
+	}
+	
+	return true;
+
+}
+function isValid(board,i,j,numeroNuevo ){
+
+	// row validation
+	for(let x = (0) ;x< ((9));x++){
+	
+		if(x != j)
+			if(board[i][x]==numeroNuevo)
+				return false;
+	}
+	for(let y = (0) ;y< ((9));y++){
+	
+		if(y != i)
+			if(board[y][j]==numeroNuevo)
+				return false;
+	}
+	return true;
+}
+
+// Uso del generador
+function button(){
+	//let sudokuBoard = generateSudoku();
+	
+	let numSudokus = parseInt(document.getElementById("numSudokus").value);
+	let num2Rem = parseInt(document.getElementById("num2Rem").value);
+	let numUltimoSud = parseInt(document.getElementById("numUltimoSud").value);
+		
+	
+	genSudokuDocument(numSudokus,num2Rem,'sudoku.pdf',numUltimoSud);
+	//generarArchivoSudoku(sudokuBoard,'sudoku.txt')
+}
+
+function generarArchivoSudoku(board, nombreArchivo) {
+	// Convierte la matriz a una cadena de texto
+	const contenido = board.map(row => row.join(' ')).join('\n');
+
+	// Llama a la función para generar el archivo de texto
+	generarArchivoTxt(contenido, nombreArchivo);
+}
+
+function generarArchivoTxt(contenido, nombreArchivo) {
+	var blob = new Blob([contenido], { type: 'text/plain' });
+	var enlace = document.createElement('a');
+	enlace.href = window.URL.createObjectURL(blob);
+	enlace.download = nombreArchivo;
+
+	// Agrega el enlace al documento
+	document.body.appendChild(enlace);
+
+	// Simula un clic en el enlace para activar la descarga
+	enlace.click();
+
+	// Elimina el enlace del documento
+	document.body.removeChild(enlace);
+}
+
+	
+function genSudokuDocument(numSudokus, nNumber2rem, nombreArchivo, numUltimoSud) {
+
+	const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF();
+	//const nNumber2rem = 46;
+	let board2;
+	
+	for (let i=0; i<numSudokus; i++){
+	
+		let board = generateSudoku()
+
+		// Configuración de la tabla
+		const cellSize = 10;
+		const margin = 10;
+		const offsetMarginVertical = 20
+
+		// Calcular el tamaño de la celda para que se ajuste a la hoja
+		const pageSize = pdf.internal.pageSize;
+		const cellSizeToFit = (pageSize.width - 2 * margin) / 9;
+
+		//Remueve lo nNumbers de la tabla p
+		board2 = board.map(row => [...row]);
+		removeNumbers(board2, nNumber2rem);
+		
+		// Dibuja la tabla principal
+		dibujarTabla(board2, pdf, margin, margin+offsetMarginVertical, cellSizeToFit,20, 1, i+1+numUltimoSud,offsetMarginVertical);
+
+		// Agrega un salto de página
+		//pdf.addPage();
+
+		// Reducción del tamaño para la segunda tabla
+		const cellSizeReducido = 5;
+
+		// Dibuja la segunda tabla (copia reducida)
+		dibujarTabla(board, pdf, margin,margin+215+offsetMarginVertical, cellSizeReducido,7, 0, i+1+numUltimoSud,offsetMarginVertical);
+		
+		plotNumRemoved(pdf,nNumber2rem);
+	
+		plotCheckCells(pdf);
+		
+		if (i<(numSudokus-1)){
+			pdf.addPage();		
+		}
+	}
+		
+    // Guarda el PDF
+    pdf.save(nombreArchivo);
+}
+
+function plotCheckCells(pdf){
+
+	var widthCell = 5;
+	var heightCell = 5;
+	var contCell = 0;
+	var separationSize = 10;
+	var fontSize = 20;
+	
+	pdf.setFontSize(fontSize);
+	
+	for (let i = 0; i < 9; i++) {
+		
+		pdf.rect(60+contCell*separationSize, 245, widthCell, heightCell, 'S')
+		
+		pdf.text(62.5+contCell*separationSize, 256, (i+1).toString(), { align: 'center', valign: 'middle' });  
+		
+		contCell++;
+	}
+}
+
+
+
+function plotNumRemoved(pdf,nNumber2rem){
+
+	pdf.text(170, 224, "Números removidos: " + nNumber2rem.toString(), { align: 'left', valign: 'middle' });
+
+}
+
+function dibujarTabla(board, pdf, marginX, marginY, cellSize,fontSize, tipoTabla, numPagina,offsetMarginVertical) {
+	pdf.setFontSize(fontSize);
+	var grossWidthLine;
+	var thinWidthLine;
+	var lineOffset;
+	var fontSizeNumber; 
+	var offsetY;
+	
+	//Setea el valor del grosor de la linea dependiendo de la tabla (tabal grande, tabla pequeña)
+	if (tipoTabla == 1){  		// Tabla grande
+		grossWidthLine = 2;
+		thinWidthLine = 0.5;
+		lineOffset = 21.5;
+		fontSizeNumber = 46;
+		offsetY = 5.5;
+		
+		//Escribe el número del Sudoku
+		pdf.setFontSize(38);
+		pdf.text(10, 217+offsetMarginVertical, "Sudoku #" + numPagina.toString(), { align: 'left', valign: 'middle' });   //hay que mover
+	}else{						// Tabla pequeña
+		grossWidthLine = 0.6;
+		thinWidthLine = 0.2;
+		lineOffset = 5;
+		fontSizeNumber = 8;
+		offsetY = 1;
+	}
+	
+	
+    for (let i = 0; i < 9; i++) {
+        for (let j = 0; j < 9; j++) {
+            var x = marginX + j * cellSize;
+            var y = marginY + i * cellSize;
+			
+			pdf.setLineWidth(thinWidthLine);
+
+			//Dibuja las lineas horizontales gruesas
+			if (i%3==0){
+				pdf.setLineWidth(grossWidthLine);
+				pdf.line(x, y, x+lineOffset, y);
+				y = marginY + (i+3) * cellSize;
+				pdf.line(x, y, x+lineOffset, y);
+				y = marginY + (i) * cellSize;
+				pdf.setLineWidth(thinWidthLine);				
+			}
+			
+			//Dibuja las lineas verticales gruesas
+			if (j%3==0){
+				pdf.setLineWidth(grossWidthLine);
+				pdf.line(x, y, x, y+lineOffset);
+				x = marginX + (j+3) * cellSize;
+				pdf.line(x, y, x, y+lineOffset);
+				x = marginX + (j) * cellSize;
+				pdf.setLineWidth(thinWidthLine);				
+			}
+
+            // Dibuja la celda
+            pdf.rect(x, y, cellSize, cellSize);
+
+            // Escribe el número en el centro de la celda
+            const numero = board[i][j];
+			pdf.setFontSize(fontSizeNumber);
+            pdf.text(x + cellSize / 2, y + cellSize/2 + offsetY, numero.toString(), { align: 'center', valign: 'middle' });
+        }
+		
+    }
+}
+      
+  </script>
+  
+  <span>Numero último Sudoku</span>
+  <input type="text" id="numUltimoSud" value="0" style="width:100px; text-align:center"></input>
+  <br>
+  <span>Numero de Sudokus</span>
+  <input type="text" id="numSudokus" style="width:100px; text-align:center"></input>
+  <br>
+  <span>Numeros a eliminar</span>
+  <input type="text" id="num2Rem" value="46" style="width:100px; text-align:center"></input>
+  <br>
+  <button onClick="button()"> Gen Sudoku</button>
+  
+  
+		
+  </body>
+</html>
