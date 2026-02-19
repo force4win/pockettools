@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PocketTools | Seguimiento de Personas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Add Site Panel */
+        .add-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 14px;
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            align-items: flex-end;
+        }
+
+        .add-panel .input-group {
+            flex: 1;
+            margin: 0;
+        }
+
+        .btn-add-site {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            height: fit-content;
+        }
+
+        .btn-add-site:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* Sites List */
+        .sites-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Site Accordion */
+        .site-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.25s;
+        }
+
+        .site-card.pinned {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);
+        }
+
+        .site-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
+        }
+
+        .site-header:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .site-chevron {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            transition: transform 0.3s;
+            flex-shrink: 0;
+            width: 16px;
+            text-align: center;
+        }
+
+        .site-card.open .site-chevron {
+            transform: rotate(90deg);
+        }
+
+        .site-title {
+            flex: 1;
+            font-weight: 600;
+            font-size: 1rem;
+            line-height: 1.3;
+        }
+
+        .site-count {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            display: block;
+            margin-top: 2px;
+        }
+
+        .site-actions {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .btn-site-action {
+            background: rgba(255, 255, 255, 0.06);
+            border: none;
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+        }
+
+        .btn-site-action:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--text-color);
+        }
+
+        .btn-site-action.btn-pin {
+            color: var(--text-muted);
+        }
+
+        .btn-site-action.btn-pin:hover {
+            color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .site-card.pinned .btn-pin {
+            color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.15);
+        }
+
+        .btn-site-action.btn-delete {
+            color: #ef4444;
+        }
+
+        .btn-site-action.btn-delete:hover {
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        /* Accordion Body */
+        .site-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease;
+        }
+
+        .site-card.open .site-body {
+            max-height: 5000px;
+        }
+
+        .site-body-inner {
+            padding: 0 14px 14px 14px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Add Person Row */
+        .add-person-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .add-person-row input {
+            flex: 1;
+            min-width: 100px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .add-person-row input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .add-person-row input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn-add-person {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-add-person:hover {
+            opacity: 0.85;
+        }
+
+        /* Person Items */
+        .persons-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .person-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 10px 12px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            transition: background 0.15s;
+        }
+
+        .person-item:hover {
+            background: rgba(0, 0, 0, 0.18);
+        }
+
+        .person-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: white;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+
+        .person-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .person-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1.3;
+        }
+
+        .person-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .btn-person-delete {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 0.75rem;
+            transition: color 0.2s;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .btn-person-delete:hover {
+            color: #ef4444;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px 20px;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.3;
+            margin-bottom: 12px;
+        }
+
+        /* Pinned badge */
+        .pinned-badge {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary-color);
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Search */
+        .search-bar {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .search-bar .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 40px 12px 40px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-bar input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .search-bar input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-bar .btn-clear-search {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-muted);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+        }
+
+        .search-bar .btn-clear-search:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-color);
+        }
+
+        .search-bar .btn-clear-search.visible {
+            display: flex;
+        }
+
+        .search-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: right;
+            margin-bottom: 8px;
+            min-height: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container tool-view active">
+        <div class="tool-header">
+            <a href="index.html" class="back-btn" aria-label="Volver">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h2 class="tool-title" style="flex:1;">Seguimiento de Personas</h2>
+            <button id="theme-toggle" class="secondary-btn" aria-label="Cambiar Tema"
+                style="padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+
+        <div id="tool-content" style="flex: 1; display: flex; flex-direction: column;">
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 14px; font-size: 0.85rem;">
+                <i class="fa-solid fa-users"></i> Organiza personas por sitio
+            </p>
+
+            <!-- Add Site -->
+            <div class="add-panel">
+                <div class="input-group">
+                    <label>Nombre del sitio</label>
+                    <input type="text" id="inputSiteName" class="glass-input" placeholder="Ej: Oficina central...">
+                </div>
+                <button class="btn-add-site" onclick="addSite()">
+                    <i class="fa-solid fa-plus"></i> Sitio
+                </button>
+            </div>
+
+            <!-- Search -->
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Buscar personas..." oninput="onSearchInput()">
+                <button class="btn-clear-search" id="btnClearSearch" onclick="clearSearch()" title="Limpiar búsqueda">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="search-info" id="searchInfo"></div>
+
+            <!-- Sites List -->
+            <div class="sites-list" id="sitesList"></div>
+        </div>
+    </div>
+
+    <script>
+        // === Theme System ===
+        const TOOL_ID = 'tracker';
+        const themeBtn = document.getElementById('theme-toggle');
+
+        function loadTheme() {
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            applyTheme(saved[TOOL_ID] || 'dark');
+        }
+
+        function toggleTheme() {
+            const list = ['dark', 'light', 'matrix', 'kids', 'cyberpunk', 'nordic', 'forest'];
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            let current = saved[TOOL_ID] || 'dark';
+            let idx = list.indexOf(current);
+            if (idx === -1) idx = 0;
+            const next = list[(idx + 1) % list.length];
+            saved[TOOL_ID] = next;
+            localStorage.setItem('pt_tool_themes', JSON.stringify(saved));
+            applyTheme(next);
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') document.documentElement.removeAttribute('data-theme');
+            else document.documentElement.setAttribute('data-theme', theme);
+            updateThemeIcon(theme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = themeBtn.querySelector('i');
+            icon.className = ''; icon.style.color = '';
+            switch (theme) {
+                case 'light': icon.className = 'fa-solid fa-sun'; icon.style.color = '#f59e0b'; break;
+                case 'matrix': icon.className = 'fa-solid fa-terminal'; icon.style.color = '#00ff41'; break;
+                case 'kids': icon.className = 'fa-solid fa-shapes'; icon.style.color = '#ef4444'; break;
+                case 'cyberpunk': icon.className = 'fa-solid fa-robot'; icon.style.color = '#00ffff'; break;
+                case 'nordic': icon.className = 'fa-regular fa-snowflake'; icon.style.color = '#88c0d0'; break;
+                case 'forest': icon.className = 'fa-solid fa-tree'; icon.style.color = '#95d5b2'; break;
+                default: icon.className = 'fa-solid fa-moon'; break;
+            }
+        }
+
+        themeBtn.addEventListener('click', toggleTheme);
+        loadTheme();
+
+        // === Data ===
+        let sites = JSON.parse(localStorage.getItem('pt_tracker_sites') || '[]');
+        let openSites = new Set();
+
+        function save() {
+            localStorage.setItem('pt_tracker_sites', JSON.stringify(sites));
+        }
+
+        function genId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function getInitials(name) {
+            const parts = name.trim().split(/\s+/);
+            if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+            return name.substring(0, 2).toUpperCase();
+        }
+
+        // === Site Actions ===
+        function addSite() {
+            const input = document.getElementById('inputSiteName');
+            const name = input.value.trim();
+            if (!name) { alert('Escribe el nombre del sitio.'); return; }
+
+            sites.push({
+                id: genId(),
+                name: name,
+                pinned: false,
+                persons: [],
+                createdAt: new Date().toISOString()
+            });
+
+            save();
+            openSites.add(sites[sites.length - 1].id);
+            render();
+            input.value = '';
+        }
+
+        function deleteSite(id) {
+            const site = sites.find(s => s.id === id);
+            const count = site ? site.persons.length : 0;
+            if (confirm(`¿Eliminar "${site?.name}" y sus ${count} persona(s)?`)) {
+                sites = sites.filter(s => s.id !== id);
+                openSites.delete(id);
+                save();
+                render();
+            }
+        }
+
+        function togglePin(id) {
+            const site = sites.find(s => s.id === id);
+            if (!site) return;
+
+            // If already pinned, unpin
+            if (site.pinned) {
+                site.pinned = false;
+            } else {
+                // Unpin all others, pin this one
+                sites.forEach(s => s.pinned = false);
+                site.pinned = true;
+                openSites.add(id);
+            }
+
+            save();
+            render();
+
+            // Scroll to top
+            if (site.pinned) {
+                setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+            }
+        }
+
+        function toggleSite(id) {
+            if (openSites.has(id)) openSites.delete(id);
+            else openSites.add(id);
+            render();
+        }
+
+        // === Person Actions ===
+        function addPerson(siteId) {
+            const nameInput = document.getElementById(`person-name-${siteId}`);
+            const descInput = document.getElementById(`person-desc-${siteId}`);
+            const name = nameInput.value.trim();
+            const desc = descInput.value.trim();
+
+            if (!name) { nameInput.focus(); return; }
+
+            const site = sites.find(s => s.id === siteId);
+            if (site) {
+                site.persons.push({ id: genId(), name, desc });
+                save();
+                render();
+                setTimeout(() => {
+                    const ni = document.getElementById(`person-name-${siteId}`);
+                    if (ni) ni.focus();
+                }, 50);
+            }
+        }
+
+        function deletePerson(siteId, personId) {
+            const site = sites.find(s => s.id === siteId);
+            if (site) {
+                site.persons = site.persons.filter(p => p.id !== personId);
+                save();
+                render();
+            }
+        }
+
+        // === Search ===
+        function onSearchInput() {
+            const clearBtn = document.getElementById('btnClearSearch');
+            const val = document.getElementById('searchInput').value;
+            clearBtn.classList.toggle('visible', val.length > 0);
+            render();
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            document.getElementById('btnClearSearch').classList.remove('visible');
+            render();
+            input.focus();
+        }
+
+        // === Render ===
+        function render() {
+            const container = document.getElementById('sitesList');
+            const searchInfo = document.getElementById('searchInfo');
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            container.innerHTML = '';
+
+            if (sites.length === 0) {
+                searchInfo.textContent = '';
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-building-user"></i>
+                        <p>No hay sitios creados.<br>Agrega un sitio para empezar el seguimiento.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort: pinned first, then by creation order
+            const sorted = [...sites].sort((a, b) => {
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+                return 0; // Keep original order
+            });
+
+            // Filter by search
+            let filtered = sorted;
+            if (query) {
+                filtered = sorted.filter(site => {
+                    if (site.name.toLowerCase().includes(query)) return true;
+                    return site.persons.some(p =>
+                        p.name.toLowerCase().includes(query) ||
+                        p.desc.toLowerCase().includes(query)
+                    );
+                });
+                searchInfo.textContent = `${filtered.length} de ${sites.length} sitio(s)`;
+            } else {
+                searchInfo.textContent = '';
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="padding: 20px;">
+                        <p>No se encontraron coincidencias.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(site => {
+                const isOpen = openSites.has(site.id);
+                const el = document.createElement('div');
+                el.className = `site-card${isOpen ? ' open' : ''}${site.pinned ? ' pinned' : ''}`;
+
+                // Count badge
+                const countText = site.persons.length === 1
+                    ? '1 persona'
+                    : `${site.persons.length} personas`;
+
+                // Pinned badge
+                const pinnedBadge = site.pinned
+                    ? `<span class="pinned-badge"><i class="fa-solid fa-thumbtack" style="font-size:0.55rem;"></i> Activo</span>`
+                    : '';
+
+                // Pin icon
+                const pinIcon = site.pinned ? 'fa-solid fa-thumbtack' : 'fa-solid fa-thumbtack';
+
+                // Persons HTML
+                let personsHtml = '';
+                site.persons.forEach(p => {
+                    let displayName = p.name;
+                    let displayDesc = p.desc;
+
+                    if (query) {
+                        const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                        displayName = p.name.replace(regex, '<mark style="background: color-mix(in srgb, var(--primary-color) 35%, transparent); color: var(--text-color); border-radius: 3px; padding: 0 2px;">$1</mark>');
+                        displayDesc = p.desc.replace(regex, '<mark style="background: color-mix(in srgb, var(--primary-color) 35%, transparent); color: var(--text-color); border-radius: 3px; padding: 0 2px;">$1</mark>');
+                    }
+
+                    personsHtml += `
+                        <div class="person-item">
+                            <div class="person-avatar">${getInitials(p.name)}</div>
+                            <div class="person-info">
+                                <div class="person-name">${displayName}</div>
+                                ${p.desc ? `<div class="person-desc">${displayDesc}</div>` : ''}
+                            </div>
+                            <button class="btn-person-delete" onclick="deletePerson('${site.id}', '${p.id}')" title="Eliminar persona">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+
+                el.innerHTML = `
+                    <div class="site-header" onclick="toggleSite('${site.id}')">
+                        <i class="fa-solid fa-chevron-right site-chevron"></i>
+                        <div style="flex: 1;">
+                            <div class="site-title">${site.name} ${pinnedBadge}</div>
+                            <span class="site-count">${countText}</span>
+                        </div>
+                        <div class="site-actions" onclick="event.stopPropagation()">
+                            <button class="btn-site-action btn-pin" onclick="togglePin('${site.id}')" title="${site.pinned ? 'Desfijar' : 'Fijar arriba'}">
+                                <i class="${pinIcon}"></i>
+                            </button>
+                            <button class="btn-site-action btn-delete" onclick="deleteSite('${site.id}')" title="Eliminar sitio">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="site-body">
+                        <div class="site-body-inner">
+                            <div class="add-person-row">
+                                <input type="text" id="person-name-${site.id}" placeholder="Nombre..."
+                                    onkeypress="if(event.key==='Enter'){document.getElementById('person-desc-${site.id}').focus();}">
+                                <input type="text" id="person-desc-${site.id}" placeholder="Descripción..."
+                                    onkeypress="if(event.key==='Enter') addPerson('${site.id}')">
+                                <button class="btn-add-person" onclick="addPerson('${site.id}')">
+                                    <i class="fa-solid fa-user-plus"></i>
+                                </button>
+                            </div>
+                            <div class="persons-list">${personsHtml}</div>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(el);
+            });
+        }
+
+        // Enter on site name input
+        document.getElementById('inputSiteName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addSite();
+        });
+
+        // Initial render
+        render();
+    </script>
+</body>
+
+</html>
