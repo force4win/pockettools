@@ -205,6 +205,13 @@ p.subtitle {
     font-size: 0.95rem;
 }
 
+/* Link Reset for tool cards and back button */
+a.tool-card,
+a.back-btn {
+    text-decoration: none;
+    color: inherit;
+}
+
 /* Dashboard Grid */
 .tools-grid {
     display: grid;

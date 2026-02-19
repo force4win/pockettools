@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PocketTools | Conversor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="app-container tool-view active">
+        <div class="tool-header">
+            <a href="index.html" class="back-btn" aria-label="Volver">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h2 class="tool-title" style="flex:1;">Conversor</h2>
+            <button id="theme-toggle" class="secondary-btn" aria-label="Cambiar Tema"
+                style="padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+
+        <div id="tool-content" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="input-group">
+                <label>Tipo</label>
+                <select id="conv-type">
+                    <option value="length">Longitud (m/ft)</option>
+                    <option value="weight">Peso (kg/lb)</option>
+                    <option value="temp">Temperatura (C/F)</option>
+                </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: center;">
+                <div class="input-group">
+                    <label id="label-a">Metros</label>
+                    <input type="number" id="input-a" placeholder="0">
+                </div>
+                <div style="text-align: center; font-size: 1.5rem; color: var(--text-muted); padding-top: 12px;">
+                    <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                </div>
+                <div class="input-group">
+                    <label id="label-b">Pies</label>
+                    <input type="number" id="input-b" placeholder="0">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === Theme System ===
+        const TOOL_ID = 'converter';
+        const themeBtn = document.getElementById('theme-toggle');
+
+        function loadTheme() {
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            applyTheme(saved[TOOL_ID] || 'dark');
+        }
+
+        function toggleTheme() {
+            const list = ['dark', 'light', 'matrix', 'kids', 'cyberpunk', 'nordic', 'forest'];
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            let current = saved[TOOL_ID] || 'dark';
+            let idx = list.indexOf(current);
+            if (idx === -1) idx = 0;
+            const next = list[(idx + 1) % list.length];
+            saved[TOOL_ID] = next;
+            localStorage.setItem('pt_tool_themes', JSON.stringify(saved));
+            applyTheme(next);
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') document.documentElement.removeAttribute('data-theme');
+            else document.documentElement.setAttribute('data-theme', theme);
+            updateThemeIcon(theme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = themeBtn.querySelector('i');
+            icon.className = ''; icon.style.color = '';
+            switch (theme) {
+                case 'light': icon.className = 'fa-solid fa-sun'; icon.style.color = '#f59e0b'; break;
+                case 'matrix': icon.className = 'fa-solid fa-terminal'; icon.style.color = '#00ff41'; break;
+                case 'kids': icon.className = 'fa-solid fa-shapes'; icon.style.color = '#ef4444'; break;
+                case 'cyberpunk': icon.className = 'fa-solid fa-robot'; icon.style.color = '#00ffff'; break;
+                case 'nordic': icon.className = 'fa-regular fa-snowflake'; icon.style.color = '#88c0d0'; break;
+                case 'forest': icon.className = 'fa-solid fa-tree'; icon.style.color = '#95d5b2'; break;
+                default: icon.className = 'fa-solid fa-moon'; break;
+            }
+        }
+
+        themeBtn.addEventListener('click', toggleTheme);
+        loadTheme();
+
+        // === Tool Logic ===
+        const typeSelect = document.getElementById('conv-type');
+        const boxA = document.getElementById('input-a');
+        const boxB = document.getElementById('input-b');
+        const lblA = document.getElementById('label-a');
+        const lblB = document.getElementById('label-b');
+
+        const types = {
+            length: { a: 'Metros', b: 'Pies', factor: 3.28084 },
+            weight: { a: 'Kg', b: 'Lb', factor: 2.20462 },
+            temp: { a: '°C', b: '°F', isTemp: true }
+        };
+
+        const updateLabels = () => {
+            const t = types[typeSelect.value];
+            lblA.textContent = t.a;
+            lblB.textContent = t.b;
+            boxA.value = '';
+            boxB.value = '';
+        };
+
+        const convert = (source) => {
+            const t = types[typeSelect.value];
+            const valA = parseFloat(boxA.value);
+            const valB = parseFloat(boxB.value);
+
+            if (source === 'a') {
+                if (isNaN(valA)) return boxB.value = '';
+                if (t.isTemp) {
+                    boxB.value = (valA * 9 / 5 + 32).toFixed(2);
+                } else {
+                    boxB.value = (valA * t.factor).toFixed(2);
+                }
+            } else {
+                if (isNaN(valB)) return boxA.value = '';
+                if (t.isTemp) {
+                    boxA.value = ((valB - 32) * 5 / 9).toFixed(2);
+                } else {
+                    boxA.value = (valB / t.factor).toFixed(2);
+                }
+            }
+        };
+
+        typeSelect.onchange = updateLabels;
+        boxA.oninput = () => convert('a');
+        boxB.oninput = () => convert('b');
+    </script>
+</body>
+
+</html>

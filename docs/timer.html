@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PocketTools | Cuenta Regresiva</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="app-container tool-view active">
+        <div class="tool-header">
+            <a href="index.html" class="back-btn" aria-label="Volver">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h2 class="tool-title" style="flex:1;">Cuenta Regresiva</h2>
+            <button id="theme-toggle" class="secondary-btn" aria-label="Cambiar Tema"
+                style="padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+
+        <div id="tool-content" style="flex: 1; display: flex; flex-direction: column;">
+            <div
+                style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 24px;">
+                <!-- Inputs -->
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <div class="input-group" style="text-align: center; margin:0;">
+                        <label>Min</label>
+                        <input type="number" id="timer-min" value="5" min="0" max="999"
+                            style="width: 80px; text-align: center; font-size: 1.5rem;">
+                    </div>
+                    <span style="font-size: 2rem; font-weight: bold; margin-top: 14px;">:</span>
+                    <div class="input-group" style="text-align: center; margin:0;">
+                        <label>Seg</label>
+                        <input type="number" id="timer-sec" value="0" min="0" max="59"
+                            style="width: 80px; text-align: center; font-size: 1.5rem;">
+                    </div>
+                </div>
+
+                <!-- Display -->
+                <div id="timer-display" class="counter-display"
+                    style="font-family: monospace; font-size: 5rem; line-height: 1;">
+                    05:00
+                </div>
+
+                <!-- Controls -->
+                <div class="counter-controls">
+                    <button id="btn-timer-reset" class="counter-btn btn-reset" title="Reiniciar">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                    <button id="btn-timer-toggle" class="counter-btn btn-plus"
+                        style="width: 80px; height: 80px; font-size: 2rem;" title="Iniciar/Pausar">
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                </div>
+
+                <p style="text-align:center; color: var(--text-muted); font-size: 0.9rem; margin-top: 16px;">
+                    <i class="fa-solid fa-volume-high"></i> La alarma sonará al finalizar.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === Theme System ===
+        const TOOL_ID = 'timer';
+        const themeBtn = document.getElementById('theme-toggle');
+
+        function loadTheme() {
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            applyTheme(saved[TOOL_ID] || 'dark');
+        }
+
+        function toggleTheme() {
+            const list = ['dark', 'light', 'matrix', 'kids', 'cyberpunk', 'nordic', 'forest'];
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            let current = saved[TOOL_ID] || 'dark';
+            let idx = list.indexOf(current);
+            if (idx === -1) idx = 0;
+            const next = list[(idx + 1) % list.length];
+            saved[TOOL_ID] = next;
+            localStorage.setItem('pt_tool_themes', JSON.stringify(saved));
+            applyTheme(next);
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') document.documentElement.removeAttribute('data-theme');
+            else document.documentElement.setAttribute('data-theme', theme);
+            updateThemeIcon(theme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = themeBtn.querySelector('i');
+            icon.className = ''; icon.style.color = '';
+            switch (theme) {
+                case 'light': icon.className = 'fa-solid fa-sun'; icon.style.color = '#f59e0b'; break;
+                case 'matrix': icon.className = 'fa-solid fa-terminal'; icon.style.color = '#00ff41'; break;
+                case 'kids': icon.className = 'fa-solid fa-shapes'; icon.style.color = '#ef4444'; break;
+                case 'cyberpunk': icon.className = 'fa-solid fa-robot'; icon.style.color = '#00ffff'; break;
+                case 'nordic': icon.className = 'fa-regular fa-snowflake'; icon.style.color = '#88c0d0'; break;
+                case 'forest': icon.className = 'fa-solid fa-tree'; icon.style.color = '#95d5b2'; break;
+                default: icon.className = 'fa-solid fa-moon'; break;
+            }
+        }
+
+        themeBtn.addEventListener('click', toggleTheme);
+        loadTheme();
+
+        // === Tool Logic ===
+        const minInput = document.getElementById('timer-min');
+        const secInput = document.getElementById('timer-sec');
+        const display = document.getElementById('timer-display');
+        const btnToggle = document.getElementById('btn-timer-toggle');
+        const btnReset = document.getElementById('btn-timer-reset');
+
+        let timerInterval = null;
+        let timeLeft = 300;
+        let isRunning = false;
+        let audioCtx;
+
+        const playAlarm = () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+
+            const now = audioCtx.currentTime;
+
+            gain.gain.setValueAtTime(0.5, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.2);
+            gain.gain.setValueAtTime(0.5, now + 0.4);
+            gain.gain.linearRampToValueAtTime(0, now + 0.6);
+            gain.gain.setValueAtTime(0.5, now + 0.8);
+            gain.gain.linearRampToValueAtTime(0, now + 1.0);
+
+            osc.start(now);
+            osc.stop(now + 1.2);
+        };
+
+        const updateDisplay = () => {
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            display.textContent = `${m}:${s}`;
+
+            if (isRunning) document.title = `${m}:${s} - Timer`;
+            else document.title = 'PocketTools | Cuenta Regresiva';
+        };
+
+        const setFromInputs = () => {
+            if (isRunning) return;
+            let m = parseInt(minInput.value) || 0;
+            let s = parseInt(secInput.value) || 0;
+            timeLeft = m * 60 + s;
+            updateDisplay();
+        };
+
+        minInput.oninput = setFromInputs;
+        secInput.oninput = setFromInputs;
+
+        btnToggle.onclick = () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                btnToggle.innerHTML = '<i class="fa-solid fa-play"></i>';
+                btnToggle.classList.remove('btn-minus');
+                btnToggle.classList.add('btn-plus');
+                minInput.disabled = false;
+                secInput.disabled = false;
+                document.title = 'PocketTools | Cuenta Regresiva';
+            } else {
+                if (timeLeft <= 0) return;
+
+                isRunning = true;
+                btnToggle.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                btnToggle.classList.remove('btn-plus');
+                btnToggle.classList.add('btn-minus');
+
+                minInput.disabled = true;
+                secInput.disabled = true;
+
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateDisplay();
+
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        updateDisplay();
+
+                        btnToggle.innerHTML = '<i class="fa-solid fa-play"></i>';
+                        btnToggle.classList.remove('btn-minus');
+                        btnToggle.classList.add('btn-plus');
+                        minInput.disabled = false;
+                        secInput.disabled = false;
+
+                        playAlarm();
+                        alert("¡Tiempo Terminado!");
+                        document.title = '¡Tiempo!';
+                    }
+                }, 1000);
+            }
+        };
+
+        btnReset.onclick = () => {
+            if (timerInterval) clearInterval(timerInterval);
+            isRunning = false;
+            btnToggle.innerHTML = '<i class="fa-solid fa-play"></i>';
+            btnToggle.classList.remove('btn-minus');
+            btnToggle.classList.add('btn-plus');
+            minInput.disabled = false;
+            secInput.disabled = false;
+            document.title = 'PocketTools | Cuenta Regresiva';
+            setFromInputs();
+        };
+
+        isRunning = false;
+        if (timerInterval) clearInterval(timerInterval);
+        setFromInputs();
+    </script>
+</body>
+
+</html>

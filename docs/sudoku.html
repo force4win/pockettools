@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PocketTools | Sudoku Master</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="app-container tool-view active">
+        <div class="tool-header">
+            <a href="index.html" class="back-btn" aria-label="Volver">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h2 class="tool-title" style="flex:1;">Sudoku Master</h2>
+            <button id="theme-toggle" class="secondary-btn" aria-label="Cambiar Tema"
+                style="padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+
+        <div id="tool-content" style="flex: 1; display: flex; flex-direction: column;">
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+
+                <!-- Mode Tabs -->
+                <div
+                    style="display: flex; gap: 12px; border-bottom: 1px solid var(--surface-border); padding-bottom: 12px;">
+                    <button id="tab-play" class="secondary-btn"
+                        style="flex:1; background: var(--surface-border);">Jugar</button>
+                    <button id="tab-gen" class="secondary-btn" style="flex:1;">Generador PDF</button>
+                </div>
+
+                <!-- PLAY MODE -->
+                <div id="view-play" style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                    <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                        <div>
+                            <label style="margin:0; font-size: 0.8rem;">Dificultad</label>
+                            <select id="game-difficulty" style="padding: 4px 8px; width: auto;">
+                                <option value="30">Fácil</option>
+                                <option value="45">Medio</option>
+                                <option value="55">Difícil</option>
+                            </select>
+                        </div>
+                        <button id="btn-new-game" class="primary-btn"
+                            style="width: auto; padding: 6px 16px; font-size: 0.9rem;">
+                            <i class="fa-solid fa-rotate"></i> Nuevo
+                        </button>
+                    </div>
+
+                    <!-- Board Container -->
+                    <div id="sudoku-board"
+                        style="display: grid; grid-template-columns: repeat(9, 1fr); gap: 2px; background: var(--text-muted); padding: 2px; border-radius: 4px; width: 100%; max-width: 400px; aspect-ratio: 1;">
+                    </div>
+
+                    <!-- Controls -->
+                    <div
+                        style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; max-width: 400px;">
+                        <button class="num-btn secondary-btn" data-num="1">1</button>
+                        <button class="num-btn secondary-btn" data-num="2">2</button>
+                        <button class="num-btn secondary-btn" data-num="3">3</button>
+                        <button class="num-btn secondary-btn" data-num="4">4</button>
+                        <button class="num-btn secondary-btn" data-num="5">5</button>
+                        <button class="num-btn secondary-btn" data-num="6">6</button>
+                        <button class="num-btn secondary-btn" data-num="7">7</button>
+                        <button class="num-btn secondary-btn" data-num="8">8</button>
+                        <button class="num-btn secondary-btn" data-num="9">9</button>
+                        <button class="num-btn secondary-btn" data-num="0" style="color: #ef4444;"><i
+                                class="fa-solid fa-eraser"></i></button>
+                    </div>
+                </div>
+
+                <!-- GENERATOR MODE -->
+                <div id="view-gen" style="display: none; flex-direction: column; gap: 16px;">
+                    <div class="input-group">
+                        <label>Cantidad de Sudokus</label>
+                        <input type="number" id="gen-count" value="1" min="1" max="50">
+                    </div>
+                    <div class="input-group">
+                        <label>Números a Eliminar (Dificultad)</label>
+                        <input type="number" id="gen-rem" value="45" min="20" max="64">
+                    </div>
+                    <div class="input-group">
+                        <label>Número Inicial (Para título)</label>
+                        <input type="number" id="gen-start" value="1">
+                    </div>
+                    <button class="primary-btn" id="btn-gen-pdf">
+                        <i class="fa-solid fa-file-pdf"></i> Generar PDF
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === Theme System ===
+        const TOOL_ID = 'sudoku';
+        const themeBtn = document.getElementById('theme-toggle');
+
+        function loadTheme() {
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            applyTheme(saved[TOOL_ID] || 'dark');
+        }
+
+        function toggleTheme() {
+            const list = ['dark', 'light', 'matrix', 'kids', 'cyberpunk', 'nordic', 'forest'];
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            let current = saved[TOOL_ID] || 'dark';
+            let idx = list.indexOf(current);
+            if (idx === -1) idx = 0;
+            const next = list[(idx + 1) % list.length];
+            saved[TOOL_ID] = next;
+            localStorage.setItem('pt_tool_themes', JSON.stringify(saved));
+            applyTheme(next);
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') document.documentElement.removeAttribute('data-theme');
+            else document.documentElement.setAttribute('data-theme', theme);
+            updateThemeIcon(theme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = themeBtn.querySelector('i');
+            icon.className = ''; icon.style.color = '';
+            switch (theme) {
+                case 'light': icon.className = 'fa-solid fa-sun'; icon.style.color = '#f59e0b'; break;
+                case 'matrix': icon.className = 'fa-solid fa-terminal'; icon.style.color = '#00ff41'; break;
+                case 'kids': icon.className = 'fa-solid fa-shapes'; icon.style.color = '#ef4444'; break;
+                case 'cyberpunk': icon.className = 'fa-solid fa-robot'; icon.style.color = '#00ffff'; break;
+                case 'nordic': icon.className = 'fa-regular fa-snowflake'; icon.style.color = '#88c0d0'; break;
+                case 'forest': icon.className = 'fa-solid fa-tree'; icon.style.color = '#95d5b2'; break;
+                default: icon.className = 'fa-solid fa-moon'; break;
+            }
+        }
+
+        themeBtn.addEventListener('click', toggleTheme);
+        loadTheme();
+
+        // === Tool Logic ===
+        const tabPlay = document.getElementById('tab-play');
+        const tabGen = document.getElementById('tab-gen');
+        const viewPlay = document.getElementById('view-play');
+        const viewGen = document.getElementById('view-gen');
+        const boardEl = document.getElementById('sudoku-board');
+        const numBtns = document.querySelectorAll('.num-btn');
+        const diffSelect = document.getElementById('game-difficulty');
+        const newGameBtn = document.getElementById('btn-new-game');
+        const btnGenPdf = document.getElementById('btn-gen-pdf');
+
+        let selectedCell = null;
+        let currentBoard = [];
+        let initialBoard = [];
+        let solutionBoard = [];
+
+        // --- TAB SWITCHING ---
+        const switchTab = (mode) => {
+            if (mode === 'play') {
+                viewPlay.style.display = 'flex';
+                viewGen.style.display = 'none';
+                tabPlay.style.background = 'var(--surface-border)';
+                tabGen.style.background = 'transparent';
+            } else {
+                viewPlay.style.display = 'none';
+                viewGen.style.display = 'flex';
+                tabPlay.style.background = 'transparent';
+                tabGen.style.background = 'var(--surface-border)';
+            }
+        };
+
+        tabPlay.onclick = () => switchTab('play');
+        tabGen.onclick = () => switchTab('gen');
+
+        // --- GAME LOGIC ---
+        const generateBoard = () => {
+            let board = [];
+            for (let i = 0; i < 9; i++) {
+                board[i] = [];
+                for (let j = 0; j < 9; j++) board[i][j] = 0;
+            }
+            fillDiagonal(board);
+            fillRemaining(board, 0, 3);
+            return board;
+        };
+
+        const fillDiagonal = (board) => {
+            for (let i = 0; i < 9; i = i + 3) {
+                fillBox(board, i, i);
+            }
+        };
+
+        const fillBox = (board, row, col) => {
+            let num;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    do {
+                        num = Math.floor(Math.random() * 9) + 1;
+                    } while (!isSafeBox(board, row, col, num));
+                    board[row + i][col + j] = num;
+                }
+            }
+        };
+
+        const isSafeBox = (board, rowStart, colStart, num) => {
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[rowStart + i][colStart + j] === num) return false;
+                }
+            }
+            return true;
+        };
+
+        const isSafe = (board, row, col, num) => {
+            for (let x = 0; x < 9; x++) {
+                if (board[row][x] === num || board[x][col] === num) return false;
+            }
+            let startRow = row - row % 3;
+            let startCol = col - col % 3;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    if (board[i + startRow][j + startCol] === num) return false;
+                }
+            }
+            return true;
+        };
+
+        const fillRemaining = (board, i, j) => {
+            if (j >= 9 && i < 8) { i = i + 1; j = 0; }
+            if (i >= 9 && j >= 9) return true;
+            if (i < 3) {
+                if (j < 3) j = 3;
+            } else if (i < 6) {
+                if (j === (Math.floor(i / 3)) * 3) j = j + 3;
+            } else {
+                if (j === 6) {
+                    i = i + 1; j = 0;
+                    if (i >= 9) return true;
+                }
+            }
+
+            for (let num = 1; num <= 9; num++) {
+                if (isSafe(board, i, j, num)) {
+                    board[i][j] = num;
+                    if (fillRemaining(board, i, j + 1)) return true;
+                    board[i][j] = 0;
+                }
+            }
+            return false;
+        };
+
+        const removeKDigits = (board, k) => {
+            let count = k;
+            while (count !== 0) {
+                let cellId = Math.floor(Math.random() * 81);
+                let i = Math.floor(cellId / 9);
+                let j = cellId % 9;
+                if (board[i][j] !== 0) {
+                    count--;
+                    board[i][j] = 0;
+                }
+            }
+        };
+
+        // --- RENDER GAME ---
+        const startNewGame = () => {
+            const difficulty = parseInt(diffSelect.value);
+            const solved = generateBoard();
+            solutionBoard = JSON.parse(JSON.stringify(solved));
+            let puzzle = JSON.parse(JSON.stringify(solved));
+            removeKDigits(puzzle, difficulty);
+            currentBoard = JSON.parse(JSON.stringify(puzzle));
+            initialBoard = JSON.parse(JSON.stringify(puzzle));
+            renderBoard();
+        };
+
+        const renderBoard = () => {
+            boardEl.innerHTML = '';
+            selectedCell = null;
+
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    const val = currentBoard[i][j];
+                    const isInitial = initialBoard[i][j] !== 0;
+
+                    const cell = document.createElement('div');
+                    cell.style.cssText = `
+                        background: ${isInitial ? 'var(--surface-color)' : 'var(--input-bg)'};
+                        display: flex; align-items: center; justify-content: center;
+                        font-size: 1.2rem; cursor: pointer; color: var(--text-color);
+                        font-weight: ${isInitial ? '700' : '400'};
+                        border-radius: 2px;
+                    `;
+
+                    if (val !== 0) cell.textContent = val;
+                    if (!isInitial) {
+                        cell.style.color = 'var(--primary-color)';
+                        cell.onclick = () => selectCell(cell, i, j);
+                    }
+
+                    if ((j + 1) % 3 === 0 && j < 8) cell.style.borderRight = '2px solid var(--text-muted)';
+                    if ((i + 1) % 3 === 0 && i < 8) cell.style.borderBottom = '2px solid var(--text-muted)';
+
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    boardEl.appendChild(cell);
+                }
+            }
+        };
+
+        const selectCell = (el, r, c) => {
+            const prev = boardEl.querySelector('.selected-cell');
+            if (prev) prev.style.background = 'var(--input-bg)';
+            if (prev) prev.classList.remove('selected-cell');
+
+            selectedCell = { r, c, el };
+            el.classList.add('selected-cell');
+            el.style.background = 'rgba(59, 130, 246, 0.3)';
+        };
+
+        const inputNum = (num) => {
+            if (!selectedCell) return;
+            const { r, c, el } = selectedCell;
+
+            if (num === 0) {
+                currentBoard[r][c] = 0;
+                el.textContent = '';
+            } else {
+                currentBoard[r][c] = num;
+                el.textContent = num;
+
+                if (currentBoard[r][c] !== solutionBoard[r][c]) {
+                    el.style.color = '#ef4444';
+                } else {
+                    el.style.color = 'var(--primary-color)';
+                }
+            }
+            checkWin();
+        };
+
+        const checkWin = () => {
+            let isFull = true;
+            let isCorrect = true;
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    if (currentBoard[i][j] === 0) isFull = false;
+                    if (currentBoard[i][j] !== solutionBoard[i][j]) isCorrect = false;
+                }
+            }
+            if (isFull && isCorrect) {
+                setTimeout(() => alert('¡Felicidades! Has resuelto el Sudoku.'), 100);
+            }
+        };
+
+        numBtns.forEach(btn => {
+            btn.onclick = () => inputNum(parseInt(btn.dataset.num));
+        });
+
+        newGameBtn.onclick = startNewGame;
+
+        // --- PDF GENERATOR LOGIC ---
+        btnGenPdf.onclick = () => {
+            if (!window.jspdf) {
+                alert('Librería PDF cargando... intenta de nuevo en unos segundos.');
+                return;
+            }
+            const count = parseInt(document.getElementById('gen-count').value);
+            const removeCount = parseInt(document.getElementById('gen-rem').value);
+            const startNum = parseInt(document.getElementById('gen-start').value);
+            generatePdf(count, removeCount, startNum);
+        };
+
+        const generatePdf = (numSudokus, nNumber2rem, numUltimoSud) => {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+
+            for (let i = 0; i < numSudokus; i++) {
+                const solved = generateBoard();
+                let board2 = JSON.parse(JSON.stringify(solved));
+                removeKDigits(board2, nNumber2rem);
+
+                const margin = 10;
+                const offsetMarginVertical = 20;
+                const pageSize = pdf.internal.pageSize;
+                const cellSizeToFit = (pageSize.width - 2 * margin) / 9;
+
+                drawPdfBoard(board2, pdf, margin, margin + offsetMarginVertical, cellSizeToFit, 20, 1, i + numUltimoSud, offsetMarginVertical);
+
+                const cellSizeReducido = 5;
+                drawPdfBoard(solved, pdf, margin, margin + 215 + offsetMarginVertical, cellSizeReducido, 7, 0, i + numUltimoSud, offsetMarginVertical);
+
+                plotNumRemoved(pdf, nNumber2rem);
+                plotCheckCells(pdf);
+
+                if (i < numSudokus - 1) pdf.addPage();
+            }
+
+            pdf.save('sudoku_master.pdf');
+        };
+
+        const plotCheckCells = (pdf) => {
+            var widthCell = 5;
+            var heightCell = 5;
+            var contCell = 0;
+            var separationSize = 10;
+            var fontSize = 20;
+
+            pdf.setFontSize(fontSize);
+
+            for (let i = 0; i < 9; i++) {
+                pdf.setLineWidth(0.1);
+                pdf.rect(60 + contCell * separationSize, 245, widthCell, heightCell, 'S');
+                pdf.text((i + 1).toString(), 62.5 + contCell * separationSize, 256, { align: 'center', valign: 'middle' });
+                contCell++;
+            }
+        };
+
+        const plotNumRemoved = (pdf, nNumber2rem) => {
+            pdf.setFontSize(10);
+            pdf.text("Números removidos: " + nNumber2rem.toString(), 170, 224, { align: 'left', valign: 'middle' });
+        };
+
+        const drawPdfBoard = (board, pdf, marginX, marginY, cellSize, fontSize, tipoTabla, numPagina, offsetMarginVertical) => {
+            pdf.setFontSize(fontSize);
+            var grossWidthLine;
+            var thinWidthLine;
+            var lineOffset;
+            var fontSizeNumber;
+            var offsetY;
+
+            if (tipoTabla == 1) {
+                grossWidthLine = 2;
+                thinWidthLine = 0.5;
+                lineOffset = cellSize;
+                fontSizeNumber = 46;
+                offsetY = 5.5;
+
+                pdf.setFontSize(38);
+                pdf.text("Sudoku #" + numPagina.toString(), 10, 217 + offsetMarginVertical, { align: 'left', valign: 'middle' });
+
+                pdf.setFontSize(10);
+                pdf.text('Generado por PocketTools', 10, 10);
+            } else {
+                grossWidthLine = 0.6;
+                thinWidthLine = 0.2;
+                lineOffset = cellSize;
+                fontSizeNumber = 8;
+                offsetY = 1;
+            }
+
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    var x = marginX + j * cellSize;
+                    var y = marginY + i * cellSize;
+
+                    pdf.setLineWidth(thinWidthLine);
+
+                    if (i % 3 == 0) {
+                        pdf.setLineWidth(grossWidthLine);
+                        pdf.line(x, y, x + cellSize, y);
+                        pdf.setLineWidth(thinWidthLine);
+                    }
+
+                    if (i % 3 == 0) {
+                        pdf.setLineWidth(grossWidthLine);
+                        pdf.line(x, y, x + cellSize, y);
+                    }
+
+                    if (j % 3 == 0) {
+                        pdf.setLineWidth(grossWidthLine);
+                        pdf.line(x, y, x, y + cellSize);
+                    }
+
+                    pdf.setLineWidth(thinWidthLine);
+                    pdf.rect(x, y, cellSize, cellSize);
+
+                    const numero = board[i][j];
+                    if (numero !== 0) {
+                        pdf.setFontSize(fontSizeNumber);
+                        pdf.text(numero.toString(), x + cellSize / 2, y + cellSize / 2 + offsetY, { align: 'center', valign: 'middle' });
+                    }
+                }
+            }
+
+            pdf.setLineWidth(grossWidthLine);
+            for (let i = 0; i <= 9; i += 3) {
+                pdf.line(marginX, marginY + i * cellSize, marginX + 9 * cellSize, marginY + i * cellSize);
+                pdf.line(marginX + i * cellSize, marginY, marginX + i * cellSize, marginY + 9 * cellSize);
+            }
+        };
+
+        // Init
+        switchTab('play');
+        startNewGame();
+    </script>
+</body>
+
+</html>
