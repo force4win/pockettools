@@ -33,6 +33,12 @@
             padding-bottom: 0;
         }
 
+        .app-container.tool-view .tool-header {
+            flex-shrink: 0;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+        }
+
         .date-panel {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -523,7 +529,7 @@
             return monthView;
         }
 
-        function renderMonths(startDate, count = 7) {
+        function renderMonths(startDate, count = 3) {
             let current = startDate.clone().startOf('month');
             for (let i = 0; i < count; i++) {
                 calendarContainer.appendChild(createMonthElement(current));
@@ -556,10 +562,10 @@
             // Show/hide info message
             document.getElementById('noCycleInfo').style.display = selectedDate ? 'none' : 'block';
 
-            // Render 3 months before + today's month + 3 months after = 7 months
+            // Render 1 month before + today's month + 1 month after = 3 months
             const today = dayjs();
-            const startMonth = today.subtract(3, 'month');
-            renderMonths(startMonth, 7);
+            const startMonth = today.subtract(1, 'month');
+            renderMonths(startMonth, 3);
 
             // Scroll to today centered
             setTimeout(() => {
