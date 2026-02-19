@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PocketTools | Calendario Ciclo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Lock viewport: only calendar-scroll scrolls */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* === Date Panel === */
+        .sticky-header {
+            flex-shrink: 0;
+            z-index: 10;
+            background: var(--bg-color);
+            padding-bottom: 4px;
+        }
+
+        .app-container.tool-view {
+            height: 100%;
+            overflow: hidden;
+            padding-bottom: 0;
+        }
+
+        .date-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 14px;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .date-panel .input-group {
+            flex: 1;
+            min-width: 180px;
+            margin: 0;
+        }
+
+        .btn-apply {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            height: fit-content;
+        }
+
+        .btn-apply:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-today {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            height: fit-content;
+        }
+
+        .btn-today:hover {
+            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        /* === Legend === */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+            padding: 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        /* === Calendar === */
+        .calendar-scroll {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .month-view {
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            overflow: hidden;
+        }
+
+        .month-header {
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: capitalize;
+            margin-bottom: 12px;
+            color: var(--text-color);
+        }
+
+        .days-of-week {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 6px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+        }
+
+        .calendar-day {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            padding: 8px 2px;
+            min-height: 42px;
+            transition: background 0.15s;
+            background: linear-gradient(to bottom,
+                    var(--top-color, transparent) 0% 50%,
+                    var(--bottom-color, transparent) 50% 100%);
+        }
+
+        .calendar-day.is-empty {
+            background: transparent;
+        }
+
+        .calendar-day.is-today {
+            box-shadow: 0 0 0 2px var(--primary-color) inset;
+            font-weight: 700;
+        }
+
+        /* === Cycle Phases === */
+        .cycle-phase-1 {
+            --top-color: rgba(239, 68, 68, 0.25);
+            color: #f87171;
+            font-weight: 600;
+        }
+
+        .cycle-phase-2 {
+            --top-color: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            font-weight: 600;
+        }
+
+        .cycle-phase-3 {
+            --top-color: rgba(250, 204, 21, 0.2);
+            color: #facc15;
+            font-weight: 600;
+        }
+
+        .cycle-phase-4 {
+            --top-color: rgba(96, 165, 250, 0.2);
+            color: #60a5fa;
+            font-weight: 600;
+        }
+
+        .split-radiant-green {
+            --bottom-color: rgba(57, 255, 20, 0.15);
+        }
+
+        .split-radiant-red {
+            --bottom-color: rgba(255, 0, 127, 0.2);
+        }
+
+        /* Light theme overrides */
+        [data-theme="light"] .cycle-phase-1 {
+            --top-color: rgba(239, 68, 68, 0.2);
+            color: #dc2626;
+        }
+
+        [data-theme="light"] .cycle-phase-2 {
+            --top-color: rgba(34, 197, 94, 0.2);
+            color: #16a34a;
+        }
+
+        [data-theme="light"] .cycle-phase-3 {
+            --top-color: rgba(250, 204, 21, 0.25);
+            color: #ca8a04;
+        }
+
+        [data-theme="light"] .cycle-phase-4 {
+            --top-color: rgba(96, 165, 250, 0.2);
+            color: #2563eb;
+        }
+
+        .cycle-day-number {
+            position: absolute;
+            bottom: 1px;
+            right: 3px;
+            font-size: 0.55rem;
+            font-weight: 700;
+            opacity: 0.6;
+        }
+
+        /* Empty / No Cycle Info */
+        .no-cycle-info {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 12px;
+            font-size: 0.85rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 420px) {
+            .calendar-day {
+                font-size: 0.85rem;
+                min-height: 36px;
+                padding: 6px 1px;
+            }
+
+            .month-header {
+                font-size: 1rem;
+            }
+
+            .legend {
+                gap: 6px;
+            }
+
+            .legend-item {
+                font-size: 0.65rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container tool-view active">
+        <div class="tool-header">
+            <a href="index.html" class="back-btn" aria-label="Volver">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h2 class="tool-title" style="flex:1;">Calendario Ciclo</h2>
+            <button id="theme-toggle" class="secondary-btn" aria-label="Cambiar Tema"
+                style="padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+
+        <div id="tool-content" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+
+            <!-- Sticky Header: Date Panel + Legend -->
+            <div class="sticky-header">
+                <!-- Date Panel -->
+                <div class="date-panel">
+                    <div class="input-group">
+                        <label><i class="fa-solid fa-calendar-check"></i> Inicio del Ciclo</label>
+                        <input type="date" id="inputCycleDate" class="glass-input">
+                    </div>
+                    <button class="btn-apply" onclick="applyCycleDate()">
+                        <i class="fa-solid fa-check"></i> Aplicar
+                    </button>
+                    <button class="btn-today" onclick="goToToday()">
+                        <i class="fa-solid fa-crosshairs"></i> Hoy
+                    </button>
+                </div>
+
+                <!-- Legend -->
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: rgba(239, 68, 68, 0.5);"></div>
+                        Menstruación (1-7)
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: rgba(34, 197, 94, 0.4);"></div>
+                        Folicular (8-11)
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: rgba(250, 204, 21, 0.4);"></div>
+                        Ovulación (12-18)
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: rgba(96, 165, 250, 0.4);"></div>
+                        Lútea (19-28)
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot"
+                            style="background: linear-gradient(to bottom, transparent 50%, rgba(255,0,127,0.3) 50%);">
+                        </div>
+                        Fértil
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot"
+                            style="background: linear-gradient(to bottom, transparent 50%, rgba(57,255,20,0.3) 50%);">
+                        </div>
+                        Seguro
+                    </div>
+                </div>
+
+                <div id="noCycleInfo" class="no-cycle-info" style="display:none;">
+                    <i class="fa-solid fa-info-circle"></i> Selecciona una fecha de inicio para ver las fases del ciclo.
+                </div>
+            </div>
+
+            <!-- Calendar Container (ONLY this scrolls) -->
+            <div class="calendar-scroll" id="calendarScroll">
+                <div id="calendarContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day.js CDN -->
+    <script src="https://unpkg.com/dayjs@1.11.10/dayjs.min.js"></script>
+    <script src="https://unpkg.com/dayjs@1.11.10/plugin/utc.js"></script>
+    <script src="https://unpkg.com/dayjs@1.11.10/plugin/weekday.js"></script>
+    <script src="https://unpkg.com/dayjs@1.11.10/plugin/localeData.js"></script>
+    <script src="https://unpkg.com/dayjs@1.11.10/locale/es.js"></script>
+
+    <script>
+        // === Day.js Setup ===
+        dayjs.extend(dayjs_plugin_utc);
+        dayjs.extend(dayjs_plugin_weekday);
+        dayjs.extend(dayjs_plugin_localeData);
+        dayjs.locale('es');
+
+        // === Theme System ===
+        const TOOL_ID = 'ritmo';
+        const themeBtn = document.getElementById('theme-toggle');
+
+        function loadTheme() {
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            applyTheme(saved[TOOL_ID] || 'dark');
+        }
+
+        function toggleTheme() {
+            const list = ['dark', 'light', 'matrix', 'kids', 'cyberpunk', 'nordic', 'forest'];
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            let current = saved[TOOL_ID] || 'dark';
+            let idx = list.indexOf(current);
+            if (idx === -1) idx = 0;
+            const next = list[(idx + 1) % list.length];
+            saved[TOOL_ID] = next;
+            localStorage.setItem('pt_tool_themes', JSON.stringify(saved));
+            applyTheme(next);
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') document.documentElement.removeAttribute('data-theme');
+            else document.documentElement.setAttribute('data-theme', theme);
+            updateThemeIcon(theme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = themeBtn.querySelector('i');
+            icon.className = ''; icon.style.color = '';
+            switch (theme) {
+                case 'light': icon.className = 'fa-solid fa-sun'; icon.style.color = '#f59e0b'; break;
+                case 'matrix': icon.className = 'fa-solid fa-terminal'; icon.style.color = '#00ff41'; break;
+                case 'kids': icon.className = 'fa-solid fa-shapes'; icon.style.color = '#ef4444'; break;
+                case 'cyberpunk': icon.className = 'fa-solid fa-robot'; icon.style.color = '#00ffff'; break;
+                case 'nordic': icon.className = 'fa-regular fa-snowflake'; icon.style.color = '#88c0d0'; break;
+                case 'forest': icon.className = 'fa-solid fa-tree'; icon.style.color = '#95d5b2'; break;
+                default: icon.className = 'fa-solid fa-moon'; break;
+            }
+        }
+
+        themeBtn.addEventListener('click', toggleTheme);
+        loadTheme();
+
+        // === Calendar State ===
+        const calendarContainer = document.getElementById('calendarContainer');
+        const calendarScroll = document.getElementById('calendarScroll');
+        let selectedDate = null; // Cycle start date
+
+        // === Calendar Rendering ===
+        function createMonthElement(date) {
+            const monthView = document.createElement('div');
+            monthView.className = 'month-view';
+            monthView.id = `month-${date.format('YYYY-MM')}`;
+
+            const monthStart = date.startOf('month');
+            const monthEnd = date.endOf('month');
+            const today = dayjs().startOf('day');
+
+            // Header
+            const header = document.createElement('div');
+            header.className = 'month-header';
+            header.textContent = date.format('MMMM YYYY');
+            monthView.appendChild(header);
+
+            // Days of week
+            const dowContainer = document.createElement('div');
+            dowContainer.className = 'days-of-week';
+            const weekdays = dayjs.weekdaysShort(true);
+            weekdays.forEach(d => {
+                const el = document.createElement('div');
+                el.textContent = d;
+                dowContainer.appendChild(el);
+            });
+            monthView.appendChild(dowContainer);
+
+            // Calendar grid
+            const grid = document.createElement('div');
+            grid.className = 'calendar-grid';
+
+            // Empty cells for start of month
+            const startDow = monthStart.weekday();
+            for (let i = 0; i < startDow; i++) {
+                const empty = document.createElement('div');
+                empty.className = 'calendar-day is-empty';
+                grid.appendChild(empty);
+            }
+
+            // Days
+            for (let i = 1; i <= monthEnd.date(); i++) {
+                const day = monthStart.date(i);
+                const dayEl = document.createElement('div');
+                dayEl.className = 'calendar-day';
+
+                if (day.isSame(today, 'day')) {
+                    dayEl.classList.add('is-today');
+                    dayEl.id = 'today-cell';
+                }
+
+                let content = `${i}`;
+
+                if (selectedDate) {
+                    const diffDays = day.diff(selectedDate, 'day');
+
+                    // Single cycle: only days 1-28 from start date
+                    if (diffDays >= 0 && diffDays < 28) {
+                        const cycleDay = diffDays + 1;
+
+                        // Phase classes
+                        if (cycleDay >= 1 && cycleDay <= 7) dayEl.classList.add('cycle-phase-1');
+                        else if (cycleDay >= 8 && cycleDay <= 11) dayEl.classList.add('cycle-phase-2');
+                        else if (cycleDay >= 12 && cycleDay <= 18) dayEl.classList.add('cycle-phase-3');
+                        else if (cycleDay >= 19 && cycleDay <= 28) dayEl.classList.add('cycle-phase-4');
+
+                        // Fertility indicator (bottom half)
+                        if (cycleDay >= 1 && cycleDay <= 7) dayEl.classList.add('split-radiant-green');
+                        else if (cycleDay >= 8 && cycleDay <= 19) dayEl.classList.add('split-radiant-red');
+                        else if (cycleDay >= 20 && cycleDay <= 28) dayEl.classList.add('split-radiant-green');
+
+                        content = `${i}<span class="cycle-day-number">${cycleDay}</span>`;
+                    }
+                }
+
+                dayEl.innerHTML = content;
+                grid.appendChild(dayEl);
+            }
+
+            monthView.appendChild(grid);
+            return monthView;
+        }
+
+        function renderMonths(startDate, count = 7) {
+            let current = startDate.clone().startOf('month');
+            for (let i = 0; i < count; i++) {
+                calendarContainer.appendChild(createMonthElement(current));
+                current = current.add(1, 'month');
+            }
+        }
+
+        // === Actions ===
+        function applyCycleDate() {
+            const val = document.getElementById('inputCycleDate').value;
+            if (!val) {
+                alert('Selecciona una fecha de inicio del ciclo.');
+                return;
+            }
+            selectedDate = dayjs(val);
+            localStorage.setItem('pt_ritmo_date', val);
+            rebuildCalendar();
+        }
+
+        function goToToday() {
+            const todayCell = document.getElementById('today-cell');
+            if (todayCell) {
+                todayCell.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function rebuildCalendar() {
+            calendarContainer.innerHTML = '';
+
+            // Show/hide info message
+            document.getElementById('noCycleInfo').style.display = selectedDate ? 'none' : 'block';
+
+            // Render 3 months before + today's month + 3 months after = 7 months
+            const today = dayjs();
+            const startMonth = today.subtract(3, 'month');
+            renderMonths(startMonth, 7);
+
+            // Scroll to today centered
+            setTimeout(() => {
+                const todayCell = document.getElementById('today-cell');
+                if (todayCell) {
+                    todayCell.scrollIntoView({ behavior: 'auto', block: 'center' });
+                }
+            }, 100);
+        }
+
+        // === Init ===
+        function init() {
+            const savedDate = localStorage.getItem('pt_ritmo_date');
+            if (savedDate) {
+                selectedDate = dayjs(savedDate);
+                document.getElementById('inputCycleDate').value = savedDate;
+            }
+
+            rebuildCalendar();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
