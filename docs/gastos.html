@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PocketTools | Control de Gastos</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .nav-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 20px;
+            background: var(--card-bg);
+            padding: 6px;
+            border-radius: 14px;
+        }
+
+        .nav-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .view-section {
+            display: none;
+        }
+
+        .view-section.active {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .expense-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .expense-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.2s ease;
+        }
+
+        .expense-item:hover {
+            transform: scale(1.01);
+        }
+
+        .expense-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .expense-concept {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+
+        .expense-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .expense-source {
+            font-size: 0.75rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            background: color-mix(in srgb, var(--primary-color) 15%, transparent);
+            padding: 2px 8px;
+            border-radius: 6px;
+            width: fit-content;
+        }
+
+        .expense-value {
+            font-weight: 600;
+            color: var(--accent-color, #10b981);
+            font-size: 1.1rem;
+            white-space: nowrap;
+        }
+
+        .total-section {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .total-label {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .total-amount {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        .date-filter-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .report-summary {
+            background: color-mix(in srgb, var(--primary-color) 10%, transparent);
+            border: 1px dashed var(--primary-color);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 16px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .btn-export {
+            background: color-mix(in srgb, var(--accent-color, #10b981) 10%, transparent);
+            color: var(--accent-color, #10b981);
+            border: 1px solid color-mix(in srgb, var(--accent-color, #10b981) 25%, transparent);
+            padding: 10px;
+            border-radius: 12px;
+            width: 100%;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-export:hover {
+            background: var(--accent-color, #10b981);
+            color: white;
+        }
+
+        .btn-danger-full {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 10px;
+            border-radius: 12px;
+            width: 100%;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .btn-danger-full:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .filter-select {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            width: 100%;
+        }
+
+        .filter-select option {
+            background: var(--bg-color, #0a0a0a);
+            color: var(--text-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container tool-view active">
+        <div class="tool-header">
+            <a href="index.html" class="back-btn" aria-label="Volver">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h2 class="tool-title" style="flex:1;">Control de Gastos</h2>
+            <button id="theme-toggle" class="secondary-btn" aria-label="Cambiar Tema"
+                style="padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+
+        <div id="tool-content" style="flex: 1; display: flex; flex-direction: column;">
+            <nav class="nav-tabs">
+                <button class="nav-btn active" id="tabRegistro" onclick="switchView('registro')">
+                    <i class="fa-solid fa-pen-to-square"></i> Registro
+                </button>
+                <button class="nav-btn" id="tabReportes" onclick="switchView('reportes')">
+                    <i class="fa-solid fa-chart-bar"></i> Reportes
+                </button>
+            </nav>
+
+            <!-- VIEW: REGISTRO -->
+            <div id="view-registro" class="view-section active">
+                <div style="display: grid; gap: 14px;">
+                    <div class="input-group">
+                        <label>Concepto de compra</label>
+                        <input type="text" id="concepto" class="glass-input" placeholder="Ej: Supermercado"
+                            autocomplete="off">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                        <div class="input-group">
+                            <label>Valor ($)</label>
+                            <input type="number" id="valor" class="glass-input" placeholder="0" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label>Fuente</label>
+                            <input type="text" id="fuente" class="glass-input" list="fuentesList"
+                                placeholder="Ej: Efectivo">
+                            <datalist id="fuentesList"></datalist>
+                        </div>
+                    </div>
+                    <button class="primary-btn" id="btnRegistrar">
+                        <i class="fa-solid fa-plus"></i> Registrar Gasto
+                    </button>
+                </div>
+
+                <div style="margin-top: 24px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h3 style="margin: 0;">Registros Recientes</h3>
+                        <button class="secondary-btn" id="btnCierre" style="padding: 4px 12px; font-size: 0.8rem;">
+                            <i class="fa-solid fa-scissors"></i> Cierre
+                        </button>
+                    </div>
+
+                    <div class="expense-list" id="expenseList"></div>
+
+                    <div class="total-section">
+                        <span class="total-label">Subtotal Periodo:</span>
+                        <span class="total-amount" id="totalAmount">$0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: REPORTES -->
+            <div id="view-reportes" class="view-section">
+                <div class="date-filter-grid">
+                    <div class="input-group">
+                        <label>Desde</label>
+                        <input type="date" id="fechaDesde" class="glass-input">
+                    </div>
+                    <div class="input-group">
+                        <label>Hasta</label>
+                        <input type="date" id="fechaHasta" class="glass-input">
+                    </div>
+                </div>
+                <div class="input-group" style="margin-bottom: 16px;">
+                    <label>Filtrar por Fuente</label>
+                    <select id="filtroFuente" class="filter-select">
+                        <option value="">Todas las fuentes</option>
+                    </select>
+                </div>
+
+                <div class="report-summary">
+                    <p id="reportStats">Total filtrado: $0</p>
+                </div>
+
+                <div class="expense-list" id="reportList"></div>
+
+                <button class="btn-export" onclick="exportToCSV()">
+                    <i class="fa-solid fa-file-csv"></i> Descargar CSV (Excel)
+                </button>
+
+                <button class="btn-danger-full" onclick="deleteRangeData()">
+                    <i class="fa-solid fa-trash"></i> Borrar Data del Rango
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === Theme System ===
+        const TOOL_ID = 'gastos';
+        const themeBtn = document.getElementById('theme-toggle');
+
+        function loadTheme() {
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            applyTheme(saved[TOOL_ID] || 'dark');
+        }
+
+        function toggleTheme() {
+            const list = ['dark', 'light', 'matrix', 'kids', 'cyberpunk', 'nordic', 'forest'];
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            let current = saved[TOOL_ID] || 'dark';
+            let idx = list.indexOf(current);
+            if (idx === -1) idx = 0;
+            const next = list[(idx + 1) % list.length];
+            saved[TOOL_ID] = next;
+            localStorage.setItem('pt_tool_themes', JSON.stringify(saved));
+            applyTheme(next);
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') document.documentElement.removeAttribute('data-theme');
+            else document.documentElement.setAttribute('data-theme', theme);
+            updateThemeIcon(theme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = themeBtn.querySelector('i');
+            icon.className = ''; icon.style.color = '';
+            switch (theme) {
+                case 'light': icon.className = 'fa-solid fa-sun'; icon.style.color = '#f59e0b'; break;
+                case 'matrix': icon.className = 'fa-solid fa-terminal'; icon.style.color = '#00ff41'; break;
+                case 'kids': icon.className = 'fa-solid fa-shapes'; icon.style.color = '#ef4444'; break;
+                case 'cyberpunk': icon.className = 'fa-solid fa-robot'; icon.style.color = '#00ffff'; break;
+                case 'nordic': icon.className = 'fa-regular fa-snowflake'; icon.style.color = '#88c0d0'; break;
+                case 'forest': icon.className = 'fa-solid fa-tree'; icon.style.color = '#95d5b2'; break;
+                default: icon.className = 'fa-solid fa-moon'; break;
+            }
+        }
+
+        themeBtn.addEventListener('click', toggleTheme);
+        loadTheme();
+
+        // === Data Management ===
+        let expenses = JSON.parse(localStorage.getItem('pt_expenses') || '[]');
+        let sources = JSON.parse(localStorage.getItem('pt_expense_sources') || '[]');
+        let lastCierre = parseInt(localStorage.getItem('pt_expense_cierre') || '0');
+
+        // Elements
+        const conceptInput = document.getElementById('concepto');
+        const valueInput = document.getElementById('valor');
+        const sourceInput = document.getElementById('fuente');
+        const sourcesList = document.getElementById('fuentesList');
+        const btnRegistrar = document.getElementById('btnRegistrar');
+        const btnCierre = document.getElementById('btnCierre');
+        const expenseList = document.getElementById('expenseList');
+        const totalAmountDisplay = document.getElementById('totalAmount');
+
+        // Report Elements
+        const fechaDesde = document.getElementById('fechaDesde');
+        const fechaHasta = document.getElementById('fechaHasta');
+        const reportList = document.getElementById('reportList');
+        const reportStats = document.getElementById('reportStats');
+
+        // Navigation
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            document.getElementById(`tab${viewName.charAt(0).toUpperCase() + viewName.slice(1)}`).classList.add('active');
+
+            if (viewName === 'reportes') renderReport();
+        }
+
+        function save() {
+            localStorage.setItem('pt_expenses', JSON.stringify(expenses));
+            localStorage.setItem('pt_expense_sources', JSON.stringify(sources));
+            localStorage.setItem('pt_expense_cierre', lastCierre.toString());
+            updateSourcesList();
+            render();
+        }
+
+        function updateSourcesList() {
+            sourcesList.innerHTML = '';
+            const filterSelect = document.getElementById('filtroFuente');
+            const currentFilter = filterSelect.value;
+            filterSelect.innerHTML = '<option value="">Todas las fuentes</option>';
+
+            sources.sort().forEach(source => {
+                const option = document.createElement('option');
+                option.value = source;
+                sourcesList.appendChild(option);
+
+                const filterOption = document.createElement('option');
+                filterOption.value = source;
+                filterOption.textContent = source;
+                if (source === currentFilter) filterOption.selected = true;
+                filterSelect.appendChild(filterOption);
+            });
+        }
+
+        function registerExpense() {
+            const concept = conceptInput.value.trim();
+            const value = parseFloat(valueInput.value);
+            const source = sourceInput.value.trim();
+
+            if (!concept || isNaN(value) || value <= 0 || !source) {
+                alert('Por favor complete todos los campos (Concepto, Valor > 0 y Fuente).');
+                return;
+            }
+
+            const now = new Date();
+            const newExpense = {
+                id: Date.now(),
+                concept,
+                value,
+                source,
+                timestamp: Date.now(),
+                dateLabel: now.toLocaleString(),
+                simpleDate: now.toISOString().split('T')[0]
+            };
+
+            if (!sources.includes(source)) {
+                sources.push(source);
+            }
+
+            expenses.push(newExpense);
+            conceptInput.value = '';
+            valueInput.value = '';
+            sourceInput.value = '';
+            conceptInput.focus();
+            save();
+        }
+
+        function doCierre() {
+            if (confirm('¿Está seguro de realizar el cierre? Se ocultarán los registros anteriores.')) {
+                lastCierre = Date.now();
+                save();
+            }
+        }
+
+        function render() {
+            expenseList.innerHTML = '';
+            const visibleExpenses = expenses.filter(e => e.timestamp >= lastCierre);
+
+            if (visibleExpenses.length === 0) {
+                expenseList.innerHTML = '<div class="empty-state">No hay registros después del último cierre.</div>';
+                totalAmountDisplay.innerText = '$0';
+            } else {
+                let total = 0;
+                visibleExpenses.sort((a, b) => b.timestamp - a.timestamp).forEach(expense => {
+                    total += expense.value;
+                    expenseList.appendChild(createExpenseItem(expense));
+                });
+                totalAmountDisplay.innerText = `$${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+            }
+        }
+
+        function createExpenseItem(exp) {
+            const item = document.createElement('div');
+            item.className = 'expense-item';
+            item.innerHTML = `
+                <div class="expense-info">
+                    <span class="expense-concept">${exp.concept}</span>
+                    <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                        <span class="expense-date">${exp.dateLabel}</span>
+                        <span class="expense-source">${exp.source || 'Sin fuente'}</span>
+                    </div>
+                </div>
+                <span class="expense-value">$${exp.value.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+            `;
+            return item;
+        }
+
+        function renderReport() {
+            reportList.innerHTML = '';
+            const desde = fechaDesde.value;
+            const hasta = fechaHasta.value;
+            const fuenteFiltro = document.getElementById('filtroFuente').value;
+
+            let filtered = expenses;
+            if (desde) filtered = filtered.filter(e => e.simpleDate >= desde);
+            if (hasta) filtered = filtered.filter(e => e.simpleDate <= hasta);
+            if (fuenteFiltro) filtered = filtered.filter(e => e.source === fuenteFiltro);
+
+            if (filtered.length === 0) {
+                reportList.innerHTML = '<div class="empty-state">No se encontraron registros en este rango.</div>';
+                reportStats.innerText = 'Total filtrado: $0';
+            } else {
+                let total = 0;
+                filtered.sort((a, b) => b.timestamp - a.timestamp).forEach(expense => {
+                    total += expense.value;
+                    reportList.appendChild(createExpenseItem(expense));
+                });
+                reportStats.innerText = `Total filtrado: $${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+            }
+        }
+
+        function exportToCSV() {
+            if (expenses.length === 0) {
+                alert('No hay datos para exportar.');
+                return;
+            }
+
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Fecha,Concepto,Valor,Fuente\n";
+
+            expenses.forEach(e => {
+                const safeConcept = e.concept.replace(/,/g, '');
+                const safeSource = (e.source || 'N/A').replace(/,/g, '');
+                csvContent += `${e.dateLabel},${safeConcept},${e.value},${safeSource}\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `Reporte_Gastos_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function deleteRangeData() {
+            const desde = fechaDesde.value;
+            const hasta = fechaHasta.value;
+
+            let toDelete = expenses;
+            if (desde) toDelete = toDelete.filter(e => e.simpleDate >= desde);
+            if (hasta) toDelete = toDelete.filter(e => e.simpleDate <= hasta);
+
+            if (toDelete.length === 0) {
+                alert('No hay datos en el rango seleccionado para borrar.');
+                return;
+            }
+
+            const rangeMsg = (desde && hasta) ? `entre ${desde} y ${hasta}` : (desde ? `desde ${desde}` : `hasta ${hasta}`);
+            if (!confirm(`¿Borrar PERMANENTEMENTE los ${toDelete.length} registros ${rangeMsg}?\n\nEsta acción no se puede deshacer.`)) return;
+
+            expenses = expenses.filter(e => {
+                const matchDesde = desde ? e.simpleDate >= desde : true;
+                const matchHasta = hasta ? e.simpleDate <= hasta : true;
+                return !(matchDesde && matchHasta);
+            });
+            save();
+            renderReport();
+        }
+
+        // Event Listeners
+        btnRegistrar.addEventListener('click', registerExpense);
+        btnCierre.addEventListener('click', doCierre);
+
+        fechaDesde.addEventListener('change', renderReport);
+        fechaHasta.addEventListener('change', renderReport);
+        document.getElementById('filtroFuente').addEventListener('change', renderReport);
+
+        [conceptInput, valueInput, sourceInput].forEach(inp => {
+            inp.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') registerExpense();
+            });
+        });
+
+        // Set default date for reports
+        fechaHasta.value = new Date().toISOString().split('T')[0];
+
+        // Initial Render
+        updateSourcesList();
+        render();
+    </script>
+</body>
+
+</html>

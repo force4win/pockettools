@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PocketTools | Lista de Compras</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .controls-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .ctrl-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .ctrl-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .root-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 100px;
+        }
+
+        /* Node Item (generic) */
+        .node-item {
+            border-radius: 12px;
+            padding: 8px 10px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .node-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            color: var(--text-muted);
+            opacity: 0.4;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .node-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .node-title {
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 1rem;
+            width: 100%;
+            outline: none;
+            padding: 4px 0;
+        }
+
+        .node-title:focus {
+            border-bottom: 1px solid var(--primary-color);
+        }
+
+        /* Type: List (Accordion header) */
+        .type-list {
+            --current-color: var(--node-color, var(--primary-color));
+            background: linear-gradient(90deg,
+                    color-mix(in srgb, var(--current-color), transparent 75%) 0%,
+                    color-mix(in srgb, var(--current-color), transparent 90%) 100%);
+            border-left: 3px solid var(--current-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .type-list:hover {
+            background: linear-gradient(90deg,
+                    color-mix(in srgb, var(--current-color), transparent 65%) 0%,
+                    color-mix(in srgb, var(--current-color), transparent 85%) 100%);
+        }
+
+        .type-list .node-title {
+            font-weight: 600;
+            font-size: 1.05rem;
+        }
+
+        .accordion-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            min-height: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            margin-right: 4px;
+            font-size: 0.8rem;
+            padding: 0;
+        }
+
+        .accordion-toggle:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: scale(1.05);
+        }
+
+        .accordion-toggle i {
+            transition: transform 0.2s;
+        }
+
+        .accordion-toggle.collapsed i {
+            transform: rotate(-90deg);
+        }
+
+        /* Type: Item */
+        .type-item {
+            --current-color: var(--node-color, var(--primary-color));
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-left: 2px solid color-mix(in srgb, var(--current-color), transparent 80%);
+        }
+
+        .type-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(4px);
+            border-left-color: var(--current-color);
+        }
+
+        .type-item .node-title {
+            font-size: 0.95rem;
+            font-weight: 300;
+            color: var(--text-muted);
+        }
+
+        .type-item .node-title:focus {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .node-item.checked {
+            opacity: 0.5;
+            background: transparent;
+            border-color: transparent;
+        }
+
+        .node-item.checked .node-title {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        /* Custom Checkbox */
+        .custom-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--text-muted);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .custom-checkbox.checked {
+            background: var(--accent-color, #10b981);
+            border-color: var(--accent-color, #10b981);
+        }
+
+        .custom-checkbox i {
+            font-size: 11px;
+            color: #0f172a;
+            display: none;
+        }
+
+        .custom-checkbox.checked i {
+            display: block;
+        }
+
+        /* Color Picker */
+        .color-picker-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .color-picker-btn:hover {
+            transform: scale(1.1);
+            border-color: white;
+        }
+
+        .color-picker-input {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            opacity: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Action Buttons */
+        .header-actions {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .btn-icon {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+            font-size: 0.85rem;
+        }
+
+        .btn-icon:hover {
+            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-icon.btn-delete:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        /* Dropdown Menu */
+        .dropdown-wrapper {
+            position: relative;
+        }
+
+        .dropdown-content {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            width: 180px;
+            background: var(--card-bg, rgba(30, 41, 59, 0.95));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 6px;
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            z-index: 100;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            margin-top: 4px;
+        }
+
+        .dropdown-content.show {
+            display: flex;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-family: inherit;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown-item.danger {
+            color: #ef4444;
+        }
+
+        .dropdown-item.danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .color-picker-menu-item {
+            position: relative;
+        }
+
+        .color-swatch-small {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            flex-shrink: 0;
+        }
+
+        /* Children Container */
+        .node-container {
+            padding-left: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        /* Completed separator */
+        .completed-separator {
+            margin-top: 8px;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 8px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        /* Drag & Drop */
+        .dragging {
+            opacity: 0.4;
+            transform: scale(0.98);
+        }
+
+        .drag-over-top {
+            border-top: 2px solid var(--primary-color);
+        }
+
+        .drag-over-bottom {
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .drag-over-inside {
+            background: color-mix(in srgb, var(--primary-color) 15%, transparent);
+            border: 2px dashed var(--primary-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 40px;
+            padding: 24px;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.3;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container tool-view active">
+        <div class="tool-header">
+            <a href="index.html" class="back-btn" aria-label="Volver">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h2 class="tool-title" style="flex:1;">Lista de Compras</h2>
+            <button id="theme-toggle" class="secondary-btn" aria-label="Cambiar Tema"
+                style="padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+
+        <div id="tool-content" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="controls-bar">
+                <button class="ctrl-btn" onclick="addRootList()">
+                    <i class="fa-solid fa-plus"></i> Nueva Lista
+                </button>
+                <button class="ctrl-btn" onclick="toggleAll(true)">
+                    <i class="fa-solid fa-angles-down"></i> Expandir
+                </button>
+                <button class="ctrl-btn" onclick="toggleAll(false)">
+                    <i class="fa-solid fa-angles-up"></i> Contraer
+                </button>
+            </div>
+
+            <div id="rootList" class="root-container">
+                <!-- Dynamic Content -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === Theme System ===
+        const TOOL_ID = 'shopping';
+        const themeBtn = document.getElementById('theme-toggle');
+
+        function loadTheme() {
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            applyTheme(saved[TOOL_ID] || 'dark');
+        }
+
+        function toggleTheme() {
+            const list = ['dark', 'light', 'matrix', 'kids', 'cyberpunk', 'nordic', 'forest'];
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            let current = saved[TOOL_ID] || 'dark';
+            let idx = list.indexOf(current);
+            if (idx === -1) idx = 0;
+            const next = list[(idx + 1) % list.length];
+            saved[TOOL_ID] = next;
+            localStorage.setItem('pt_tool_themes', JSON.stringify(saved));
+            applyTheme(next);
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') document.documentElement.removeAttribute('data-theme');
+            else document.documentElement.setAttribute('data-theme', theme);
+            updateThemeIcon(theme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = themeBtn.querySelector('i');
+            icon.className = ''; icon.style.color = '';
+            switch (theme) {
+                case 'light': icon.className = 'fa-solid fa-sun'; icon.style.color = '#f59e0b'; break;
+                case 'matrix': icon.className = 'fa-solid fa-terminal'; icon.style.color = '#00ff41'; break;
+                case 'kids': icon.className = 'fa-solid fa-shapes'; icon.style.color = '#ef4444'; break;
+                case 'cyberpunk': icon.className = 'fa-solid fa-robot'; icon.style.color = '#00ffff'; break;
+                case 'nordic': icon.className = 'fa-regular fa-snowflake'; icon.style.color = '#88c0d0'; break;
+                case 'forest': icon.className = 'fa-solid fa-tree'; icon.style.color = '#95d5b2'; break;
+                default: icon.className = 'fa-solid fa-moon'; break;
+            }
+        }
+
+        themeBtn.addEventListener('click', toggleTheme);
+        loadTheme();
+
+        // === DATA MODEL ===
+        let data = JSON.parse(localStorage.getItem('pt_shopping_data') || '[]');
+        let focusTargetId = null;
+
+        function saveData() {
+            localStorage.setItem('pt_shopping_data', JSON.stringify(data));
+        }
+
+        // === RENDER ===
+        const rootContainer = document.getElementById('rootList');
+
+        function render() {
+            rootContainer.innerHTML = '';
+
+            if (data.length === 0) {
+                rootContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <p style="font-size: 1.1rem; font-weight: 600;">Tu lista está vacía</p>
+                        <p style="font-size: 0.9rem; margin-top: 8px;">Crea una nueva lista principal para comenzar.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            data.forEach(node => {
+                rootContainer.appendChild(createNodeElement(node, data, null));
+            });
+        }
+
+        function createNodeElement(node, parentArray, inheritedColor) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'wrapper';
+            wrapper.dataset.id = node.id;
+
+            const effectiveColor = node.color || inheritedColor || '#6366f1';
+            wrapper.style.setProperty('--node-color', effectiveColor);
+
+            const el = document.createElement('div');
+            el.className = `node-item type-${node.type} ${node.checked ? 'checked' : ''}`;
+            el.draggable = true;
+
+            addDragListeners(el, node, parentArray);
+
+            const header = document.createElement('div');
+            header.className = 'node-header';
+
+            // Drag Handle
+            const dragHandle = document.createElement('div');
+            dragHandle.className = 'drag-handle';
+            dragHandle.innerHTML = `<i class="fa-solid fa-grip-vertical"></i>`;
+            header.appendChild(dragHandle);
+
+            // Toggle or Checkbox
+            if (node.type === 'list') {
+                const toggle = document.createElement('button');
+                toggle.className = `accordion-toggle ${!node.expanded ? 'collapsed' : ''}`;
+                toggle.onclick = (e) => {
+                    e.stopPropagation();
+                    node.expanded = !node.expanded;
+                    saveData();
+                    render();
+                };
+                toggle.innerHTML = `<i class="fa-solid fa-chevron-down"></i>`;
+                header.appendChild(toggle);
+            } else {
+                const checkbox = document.createElement('div');
+                checkbox.className = `custom-checkbox ${node.checked ? 'checked' : ''}`;
+                checkbox.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleCheck(node.id);
+                };
+                checkbox.innerHTML = `<i class="fa-solid fa-check"></i>`;
+                header.appendChild(checkbox);
+            }
+
+            // Title Input
+            const content = document.createElement('div');
+            content.className = 'node-content';
+
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = node.title;
+            input.className = 'node-title';
+            input.placeholder = node.type === 'list' ? 'Nueva Categoría' : 'Nuevo Artículo';
+            if (node.id === focusTargetId) {
+                setTimeout(() => input.focus(), 0);
+                focusTargetId = null;
+            }
+            input.onchange = (e) => {
+                node.title = e.target.value;
+                saveData();
+            };
+            input.draggable = true;
+            input.ondragstart = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+            };
+
+            content.appendChild(input);
+            header.appendChild(content);
+
+            // Actions
+            const actions = document.createElement('div');
+            actions.className = 'header-actions';
+
+            if (node.type === 'list') {
+                // Add Item Button
+                const addItemBtn = document.createElement('button');
+                addItemBtn.className = 'btn-icon';
+                addItemBtn.title = 'Agregar Artículo';
+                addItemBtn.innerHTML = `<i class="fa-solid fa-plus" style="font-size:12px;"></i>`;
+                addItemBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    addItem(node.id, 'item');
+                };
+                actions.appendChild(addItemBtn);
+
+                // Dropdown Menu
+                const dropdownWrapper = document.createElement('div');
+                dropdownWrapper.className = 'dropdown-wrapper';
+
+                const moreBtn = document.createElement('button');
+                moreBtn.className = 'btn-icon';
+                moreBtn.innerHTML = `<i class="fa-solid fa-ellipsis-vertical" style="font-size:12px;"></i>`;
+                moreBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.dropdown-content.show').forEach(d => {
+                        if (d !== dropdownContent) d.classList.remove('show');
+                    });
+                    dropdownContent.classList.toggle('show');
+                };
+
+                const dropdownContent = document.createElement('div');
+                dropdownContent.className = 'dropdown-content';
+
+                // Sub-list option
+                const addListOption = document.createElement('button');
+                addListOption.className = 'dropdown-item';
+                addListOption.innerHTML = `<i class="fa-solid fa-folder-plus"></i> Nueva Sub-lista`;
+                addListOption.onclick = (e) => {
+                    e.stopPropagation();
+                    addItem(node.id, 'list');
+                    dropdownContent.classList.remove('show');
+                };
+                dropdownContent.appendChild(addListOption);
+
+                // Color option
+                const colorOption = document.createElement('div');
+                colorOption.className = 'dropdown-item color-picker-menu-item';
+                colorOption.innerHTML = `
+                    <div class="color-swatch-small" style="background-color: ${effectiveColor}"></div>
+                    Cambiar Color
+                `;
+
+                const colorInput = document.createElement('input');
+                colorInput.type = 'color';
+                colorInput.className = 'color-picker-input';
+                colorInput.value = effectiveColor;
+                colorInput.style.cssText = 'left:0;top:0;width:100%;height:100%;';
+
+                colorInput.oninput = (e) => {
+                    node.color = e.target.value;
+                    colorOption.querySelector('.color-swatch-small').style.backgroundColor = node.color;
+                    wrapper.style.setProperty('--node-color', node.color);
+                };
+                colorInput.onchange = (e) => {
+                    node.color = e.target.value;
+                    saveData();
+                    render();
+                };
+                colorOption.appendChild(colorInput);
+                dropdownContent.appendChild(colorOption);
+
+                // Delete option
+                const deleteOption = document.createElement('button');
+                deleteOption.className = 'dropdown-item danger';
+                deleteOption.innerHTML = `<i class="fa-solid fa-trash"></i> Eliminar Lista`;
+                deleteOption.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteNode(node.id);
+                };
+                dropdownContent.appendChild(deleteOption);
+
+                dropdownWrapper.appendChild(moreBtn);
+                dropdownWrapper.appendChild(dropdownContent);
+                actions.appendChild(dropdownWrapper);
+
+            } else {
+                // Delete Button for items
+                const delBtn = document.createElement('button');
+                delBtn.className = 'btn-icon btn-delete';
+                delBtn.title = 'Eliminar';
+                delBtn.innerHTML = `<i class="fa-solid fa-trash" style="font-size:12px;"></i>`;
+                delBtn.onclick = () => deleteNode(node.id);
+                actions.appendChild(delBtn);
+            }
+
+            header.appendChild(actions);
+            el.appendChild(header);
+            wrapper.appendChild(el);
+
+            // Children
+            if (node.type === 'list' && node.expanded) {
+                const childrenContainer = document.createElement('div');
+                childrenContainer.className = 'node-container';
+
+                const activeChildren = (node.children || []).filter(c => !c.checked);
+                const completedChildren = (node.children || []).filter(c => c.checked);
+
+                activeChildren.forEach(child => {
+                    childrenContainer.appendChild(createNodeElement(child, node.children, effectiveColor));
+                });
+
+                if (activeChildren.length > 0 && completedChildren.length > 0) {
+                    const sep = document.createElement('div');
+                    sep.className = 'completed-separator';
+                    sep.innerText = 'Completados';
+                    childrenContainer.appendChild(sep);
+                }
+
+                completedChildren.forEach(child => {
+                    childrenContainer.appendChild(createNodeElement(child, node.children, effectiveColor));
+                });
+
+                wrapper.appendChild(childrenContainer);
+            }
+
+            return wrapper;
+        }
+
+        // === ACTIONS ===
+
+        function addRootList() {
+            const newId = crypto.randomUUID();
+            data.unshift({
+                id: newId,
+                type: 'list',
+                title: '',
+                color: '#6366f1',
+                expanded: true,
+                children: []
+            });
+            focusTargetId = newId;
+            saveData();
+            render();
+        }
+
+        function addItem(parentId, type) {
+            const parent = findNode(parentId, data);
+            if (parent && parent.type === 'list') {
+                if (!parent.children) parent.children = [];
+                const newId = crypto.randomUUID();
+                parent.children.push({
+                    id: newId,
+                    type: type,
+                    title: '',
+                    checked: false,
+                    expanded: true,
+                    children: []
+                });
+                parent.expanded = true;
+                focusTargetId = newId;
+                saveData();
+                render();
+            }
+        }
+
+        function toggleAll(expand) {
+            function traverse(list) {
+                list.forEach(node => {
+                    if (node.type === 'list') {
+                        node.expanded = expand;
+                        if (node.children) traverse(node.children);
+                    }
+                });
+            }
+            traverse(data);
+            saveData();
+            render();
+        }
+
+        function findNode(id, list) {
+            for (let node of list) {
+                if (node.id === id) return node;
+                if (node.children) {
+                    const found = findNode(id, node.children);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        function deleteNode(id) {
+            if (!confirm('¿Eliminar este elemento?')) return;
+            function remove(list) {
+                const idx = list.findIndex(n => n.id === id);
+                if (idx !== -1) { list.splice(idx, 1); return true; }
+                for (let node of list) {
+                    if (node.children && remove(node.children)) return true;
+                }
+                return false;
+            }
+            remove(data);
+            saveData();
+            render();
+        }
+
+        function toggleCheck(id) {
+            const node = findNode(id, data);
+            if (node) {
+                node.checked = !node.checked;
+                saveData();
+                render();
+            }
+        }
+
+        // === DRAG AND DROP ===
+        let draggedId = null;
+
+        function addDragListeners(el, node, parentArray) {
+            el.addEventListener('dragstart', (e) => {
+                draggedId = node.id;
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', node.id);
+                setTimeout(() => el.classList.add('dragging'), 0);
+            });
+
+            el.addEventListener('dragend', () => {
+                el.classList.remove('dragging');
+                document.querySelectorAll('.drag-over-top, .drag-over-bottom, .drag-over-inside').forEach(el => {
+                    el.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-inside');
+                });
+                draggedId = null;
+            });
+
+            el.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                if (draggedId === node.id) return;
+
+                const rect = el.getBoundingClientRect();
+                const offset = e.clientY - rect.top;
+                const height = rect.height;
+
+                el.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-inside');
+
+                if (node.type === 'list' && offset > height * 0.25 && offset < height * 0.75) {
+                    el.classList.add('drag-over-inside');
+                } else if (offset < height / 2) {
+                    el.classList.add('drag-over-top');
+                } else {
+                    el.classList.add('drag-over-bottom');
+                }
+            });
+
+            el.addEventListener('dragleave', () => {
+                el.classList.remove('drag-over-top', 'drag-over-bottom', 'drag-over-inside');
+            });
+
+            el.addEventListener('drop', (e) => {
+                e.stopPropagation();
+                if (draggedId === node.id) return;
+
+                const action = el.classList.contains('drag-over-inside') ? 'inside' :
+                    el.classList.contains('drag-over-top') ? 'before' : 'after';
+
+                handleDrop(draggedId, node.id, action);
+            });
+        }
+
+        function handleDrop(srcId, targetId, action) {
+            const srcNodeRef = findNode(srcId, data);
+            if (!srcNodeRef) return;
+
+            // Cycle check
+            if (srcNodeRef.children && findNode(targetId, srcNodeRef.children)) return;
+
+            let srcNode = null;
+            function removeSrc(list) {
+                const idx = list.findIndex(n => n.id === srcId);
+                if (idx !== -1) { srcNode = list[idx]; list.splice(idx, 1); return true; }
+                for (let n of list) {
+                    if (n.children && removeSrc(n.children)) return true;
+                }
+                return false;
+            }
+
+            if (!removeSrc(data)) return;
+
+            function insert(list) {
+                const idx = list.findIndex(n => n.id === targetId);
+                if (idx !== -1) {
+                    if (action === 'before') list.splice(idx, 0, srcNode);
+                    else if (action === 'after') list.splice(idx + 1, 0, srcNode);
+                    else if (action === 'inside') {
+                        const targetNode = list[idx];
+                        if (!targetNode.children) targetNode.children = [];
+                        targetNode.children.push(srcNode);
+                        targetNode.expanded = true;
+                    }
+                    return true;
+                }
+                for (let n of list) {
+                    if (n.children && insert(n.children)) return true;
+                }
+                return false;
+            }
+
+            if (!insert(data)) data.push(srcNode);
+
+            saveData();
+            render();
+        }
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.dropdown-wrapper')) {
+                document.querySelectorAll('.dropdown-content.show').forEach(d => d.classList.remove('show'));
+            }
+        });
+
+        // Initial Render
+        render();
+    </script>
+</body>
+
+</html>

@@ -10,6 +10,225 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Stat Cards Dashboard */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .stat-value.highlight {
+            color: var(--primary-color);
+        }
+
+        /* Input Wrapper with prefix/suffix */
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: var(--input-bg, rgba(0, 0, 0, 0.2));
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 25%, transparent);
+        }
+
+        .input-prefix,
+        .input-suffix {
+            padding: 0 10px;
+            color: var(--text-muted);
+            font-weight: 600;
+            user-select: none;
+            font-size: 0.9rem;
+        }
+
+        .input-prefix {
+            padding-right: 0;
+        }
+
+        .input-suffix {
+            padding-left: 0;
+        }
+
+        .input-wrapper input {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 10px;
+            color: var(--text-color);
+            font-size: 1rem;
+            outline: none;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        /* Form Panel */
+        .form-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        /* History as Cards */
+        .log-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .log-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .log-list::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 10px;
+        }
+
+        .log-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 12px;
+            display: grid;
+            grid-template-columns: 1fr auto auto;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s;
+        }
+
+        .log-item:hover {
+            transform: scale(1.01);
+        }
+
+        .log-item.reset-log {
+            background: color-mix(in srgb, var(--accent-color, #10b981) 10%, transparent);
+            border: 1px dashed var(--accent-color, #10b981);
+            grid-template-columns: 1fr;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .log-main {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .log-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .log-stats {
+            display: flex;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+
+        .log-efficiency {
+            font-weight: 600;
+            color: var(--accent-color, #10b981);
+            font-size: 1rem;
+        }
+
+        .log-cost {
+            font-weight: 600;
+            color: var(--text-color);
+            font-size: 1rem;
+            text-align: right;
+        }
+
+        .btn-log-delete {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 4px;
+            transition: color 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .btn-log-delete:hover {
+            color: #ef4444;
+        }
+
+        .btn-cierre {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-cierre:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 32px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+    </style>
 </head>
 
 <body>
@@ -26,49 +245,69 @@
         </div>
 
         <div id="tool-content" style="flex: 1; display: flex; flex-direction: column;">
-            <div style="display: grid; gap: 16px;">
-                <input type="datetime-local" id="fuel-date" class="glass-input" step="1">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div class="input-group">
-                        <label>Km Recorridos</label>
-                        <input type="number" id="fuel-dist" placeholder="0">
+            <!-- Stats Dashboard -->
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <span class="stat-label">Eficiencia</span>
+                    <span class="stat-value highlight" id="statEff">0 Km/Gal</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Costo Total</span>
+                    <span class="stat-value" id="statCost">$0</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Distancia</span>
+                    <span class="stat-value" id="statDist">0 Km</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Galones</span>
+                    <span class="stat-value" id="statGal">0</span>
+                </div>
+            </div>
+
+            <!-- Input Form -->
+            <div class="form-panel">
+                <div class="input-group" style="margin:0;">
+                    <label>Fecha y Hora</label>
+                    <input type="datetime-local" id="fuel-date" class="glass-input" step="1">
+                </div>
+                <div class="form-row">
+                    <div class="input-group" style="margin:0;">
+                        <label>Distancia</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="fuel-dist" placeholder="0">
+                            <span class="input-suffix">Km</span>
+                        </div>
                     </div>
-                    <div class="input-group">
+                    <div class="input-group" style="margin:0;">
                         <label>Galones</label>
-                        <input type="number" id="fuel-gal" placeholder="0">
+                        <div class="input-wrapper">
+                            <input type="text" id="fuel-gal" placeholder="0,000" inputmode="decimal">
+                            <span class="input-suffix">Gal</span>
+                        </div>
                     </div>
                 </div>
-                <div class="input-group">
-                    <label>Costo Total ($)</label>
-                    <input type="number" id="fuel-cost" placeholder="$">
+                <div class="input-group" style="margin:0;">
+                    <label>Costo</label>
+                    <div class="input-wrapper">
+                        <span class="input-prefix">$</span>
+                        <input type="text" id="fuel-cost" placeholder="0" inputmode="numeric">
+                    </div>
                 </div>
                 <button class="primary-btn" id="fuel-add-btn">
                     <i class="fa-solid fa-plus"></i> Guardar Tanqueo
                 </button>
             </div>
 
-            <div style="margin-top: 32px; flex: 1; display: flex; flex-direction: column;">
+            <!-- History -->
+            <div style="flex: 1; display: flex; flex-direction: column;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                     <h3 style="margin: 0;">Historial</h3>
-                    <button class="secondary-btn" id="fuel-reset-btn" style="padding: 4px 12px; font-size: 0.8rem;">
+                    <button class="btn-cierre" id="fuel-reset-btn">
                         <i class="fa-solid fa-scissors"></i> Cerrar Periodo
                     </button>
                 </div>
-                <div style="overflow-y: auto; flex: 1; padding-right: 4px;">
-                    <table class="glass-table">
-                        <thead>
-                            <tr>
-                                <th>Fecha</th>
-                                <th id="th-km">Km</th>
-                                <th id="th-gal">Gal</th>
-                                <th id="th-eff">Km/Gal</th>
-                                <th id="th-cost">$$$</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody id="fuel-list"></tbody>
-                    </table>
-                </div>
+                <div class="log-list" id="fuel-list"></div>
             </div>
         </div>
     </div>
@@ -118,19 +357,61 @@
         themeBtn.addEventListener('click', toggleTheme);
         loadTheme();
 
+        // === Formatters ===
+        const currencyFmt = new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
+
+        function formatCurrency(value) {
+            return currencyFmt.format(value);
+        }
+
+        // === Input Masks ===
+        const costInput = document.getElementById('fuel-cost');
+        const galInput = document.getElementById('fuel-gal');
+
+        // Cost: currency mask ($1.234)
+        costInput.addEventListener('input', () => {
+            let raw = costInput.value.replace(/[^\d]/g, '');
+            if (raw === '') { costInput.value = ''; return; }
+            const num = parseInt(raw, 10);
+            costInput.value = num.toLocaleString('es-CO');
+        });
+
+        // Gallons: decimal mask with comma (1,500)
+        galInput.addEventListener('input', () => {
+            let val = galInput.value;
+            // Only allow digits and single comma
+            val = val.replace(/[^\d,]/g, '');
+            const parts = val.split(',');
+            if (parts.length > 2) val = parts[0] + ',' + parts.slice(1).join('');
+            if (parts[1] && parts[1].length > 3) val = parts[0] + ',' + parts[1].slice(0, 3);
+            galInput.value = val;
+        });
+
+        function parseCost(str) {
+            return parseFloat(str.replace(/[^\d]/g, '')) || 0;
+        }
+
+        function parseGallons(str) {
+            return parseFloat(str.replace(',', '.')) || 0;
+        }
+
         // === Tool Logic ===
         const dateInput = document.getElementById('fuel-date');
         const distInput = document.getElementById('fuel-dist');
-        const galInput = document.getElementById('fuel-gal');
-        const costInput = document.getElementById('fuel-cost');
         const addBtn = document.getElementById('fuel-add-btn');
         const resetBtn = document.getElementById('fuel-reset-btn');
-        const list = document.getElementById('fuel-list');
+        const listEl = document.getElementById('fuel-list');
 
-        const thKm = document.getElementById('th-km');
-        const thGal = document.getElementById('th-gal');
-        const thEff = document.getElementById('th-eff');
-        const thCost = document.getElementById('th-cost');
+        // Stat card elements
+        const statEff = document.getElementById('statEff');
+        const statCost = document.getElementById('statCost');
+        const statDist = document.getElementById('statDist');
+        const statGal = document.getElementById('statGal');
 
         const setNowBogota = () => {
             const now = new Date();
@@ -142,9 +423,14 @@
 
         let logs = JSON.parse(localStorage.getItem('pt_fuel_logs') || '[]');
 
-        function fuelRemove(index) {
+        // Migrate old logs without ID
+        logs.forEach((log, i) => {
+            if (!log.id) log.id = Date.now() + i;
+        });
+
+        function fuelRemove(id) {
             if (confirm('¿Borrar registro?')) {
-                logs.splice(index, 1);
+                logs = logs.filter(l => l.id !== id);
                 save();
                 render();
             }
@@ -160,27 +446,41 @@
             let headerGal = 0;
             let countingForHeader = true;
 
-            list.innerHTML = logs.map((log, index) => {
+            listEl.innerHTML = '';
+
+            if (logs.length === 0) {
+                listEl.innerHTML = '<div class="empty-state">Sin registros</div>';
+                statEff.textContent = '0 Km/Gal';
+                statCost.textContent = '$0';
+                statDist.textContent = '0 Km';
+                statGal.textContent = '0';
+                return;
+            }
+
+            logs.forEach(log => {
                 if (log.type === 'reset') {
                     countingForHeader = false;
+
                     const dateObj = new Date(log.date);
                     const dateStr = dateObj.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: '2-digit' });
-                    return `
-                    <tr class="reset-row">
-                        <td colspan="6" class="reset-cell">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span><i class="fa-solid fa-scissors"></i> Cierre ${dateStr}</span>
-                                <button class="delete-btn-sm" onclick="fuelRemove(${index})"><i class="fa-solid fa-trash"></i></button>
-                            </div>
-                            <div style="font-size: 0.9rem; margin-top: 4px; display: flex; justify-content: space-around;">
-                                <span>$${parseFloat(log.totalCost).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                                <span>${parseFloat(log.totalDist).toLocaleString()} Km</span>
-                                <span>${parseFloat(log.totalGal).toFixed(3)} Gal</span>
-                                <span>Avg: ${(log.totalDist / log.totalGal).toFixed(1)} K/G</span>
-                            </div>
-                        </td>
-                    </tr>
-                   `;
+                    const eff = log.totalGal > 0 ? (log.totalDist / log.totalGal).toFixed(1) : '0';
+
+                    const item = document.createElement('div');
+                    item.className = 'log-item reset-log';
+                    item.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span><i class="fa-solid fa-scissors"></i> Cierre ${dateStr}</span>
+                            <button class="btn-log-delete" onclick="fuelRemove(${log.id})"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <div style="font-size: 0.85rem; margin-top: 6px; display: flex; justify-content: space-around; width: 100%; flex-wrap: wrap; gap: 4px;">
+                            <span>${formatCurrency(log.totalCost)}</span>
+                            <span>${parseFloat(log.totalDist).toLocaleString()} Km</span>
+                            <span>${parseFloat(log.totalGal).toFixed(3)} Gal</span>
+                            <span>Avg: ${eff} K/G</span>
+                        </div>
+                    `;
+                    listEl.appendChild(item);
+                    return;
                 }
 
                 if (countingForHeader) {
@@ -193,57 +493,59 @@
                 const dateStr = dateObj.toLocaleString('es-CO', {
                     timeZone: 'America/Bogota',
                     day: '2-digit', month: '2-digit', year: '2-digit',
-                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                    hour: '2-digit', minute: '2-digit'
                 });
 
-                return `
-                <tr>
-                    <td style="font-size: 0.8rem;">${dateStr}</td>
-                    <td>${log.dist}</td>
-                    <td>${parseFloat(log.gal).toFixed(3)}</td>
-                    <td>${(log.dist / log.gal).toFixed(1)}</td>
-                    <td>$${parseFloat(log.cost).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td style="text-align: right;">
-                        <button class="delete-btn-sm" onclick="fuelRemove(${index})">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-               `;
-            }).join('');
+                const efficiency = (log.dist / log.gal).toFixed(1);
 
-            if (logs.length > 0) {
-                const eff = headerGal > 0 ? (headerDist / headerGal).toFixed(1) : '0.0';
-                thKm.innerHTML = `Km<div style="font-size:0.8rem; color:var(--primary-color)">${headerDist.toLocaleString()}</div>`;
-                thGal.innerHTML = `Gal<div style="font-size:0.8rem; color:var(--primary-color)">${headerGal.toFixed(3)}</div>`;
-                thEff.innerHTML = `Km/Gal<div style="font-size:0.8rem; color:var(--primary-color)">${eff}</div>`;
-                thCost.innerHTML = `$$$<div style="font-size:0.8rem; color:var(--primary-color)">$${headerCost.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>`;
-            } else {
-                thKm.textContent = 'Km';
-                thGal.textContent = 'Gal';
-                thEff.textContent = 'Km/Gal';
-                thCost.textContent = '$$$';
-                list.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">Sin registros</td></tr>';
-            }
+                const item = document.createElement('div');
+                item.className = 'log-item';
+                item.innerHTML = `
+                    <div class="log-main">
+                        <div class="log-date">${dateStr}</div>
+                        <div class="log-stats">
+                            <span>${log.dist} Km</span>
+                            <span>·</span>
+                            <span>${parseFloat(log.gal).toFixed(3)} Gal</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                        <div class="log-efficiency">${efficiency} K/G</div>
+                        <div class="log-cost">${formatCurrency(log.cost)}</div>
+                    </div>
+                    <button class="btn-log-delete" onclick="fuelRemove(${log.id})">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+                listEl.appendChild(item);
+            });
+
+            // Update stat cards
+            const eff = headerGal > 0 ? (headerDist / headerGal).toFixed(1) : '0';
+            statEff.textContent = `${eff} Km/Gal`;
+            statCost.textContent = formatCurrency(headerCost);
+            statDist.textContent = `${headerDist.toLocaleString()} Km`;
+            statGal.textContent = headerGal.toFixed(3);
         };
 
         const add = () => {
             const date = dateInput.value;
-            const dist = distInput.value;
-            const gal = galInput.value;
-            const cost = costInput.value;
+            const dist = parseFloat(distInput.value);
+            const gal = parseGallons(galInput.value);
+            const cost = parseCost(costInput.value);
 
-            if (!date || !dist || !gal || !cost) {
-                alert('Por favor completa todos los campos');
+            if (!date || !dist || dist <= 0 || !gal || gal <= 0 || !cost || cost <= 0) {
+                alert('Por favor completa todos los campos con valores mayores a 0.');
                 return;
             }
 
             logs.push({
+                id: Date.now(),
                 type: 'log',
                 date,
-                dist: parseFloat(dist),
-                gal: parseFloat(gal),
-                cost: parseFloat(cost)
+                dist,
+                gal,
+                cost
             });
 
             save();
@@ -273,12 +575,13 @@
                 return;
             }
 
-            if (!confirm(`¿Cerrar periodo actual?\n\nTotales:\n$${currentCost.toLocaleString()}\n${currentDist} Km\n${currentGal} Gal`)) return;
+            if (!confirm(`¿Cerrar periodo actual?\n\nTotales:\n${formatCurrency(currentCost)}\n${currentDist} Km\n${currentGal.toFixed(3)} Gal`)) return;
 
             const now = new Date();
             const bogotaStr = now.toLocaleString('sv-SE', { timeZone: 'America/Bogota' }).replace(' ', 'T');
 
             logs.push({
+                id: Date.now(),
                 type: 'reset',
                 date: bogotaStr,
                 totalCost: currentCost,
