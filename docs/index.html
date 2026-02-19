@@ -139,6 +139,41 @@
 
         themeBtn.addEventListener('click', toggleTheme);
         loadTheme();
+
+        // === Per-card theme tinting ===
+        const themeColors = {
+            dark: { primary: '#3b82f6', border: null },
+            light: { primary: '#ec4899', border: '#ec4899' },
+            matrix: { primary: '#00ff41', border: '#003300' },
+            kids: { primary: '#f59e0b', border: '#fcd34d' },
+            cyberpunk: { primary: '#00ffff', border: '#00ffff' },
+            nordic: { primary: '#88c0d0', border: '#4c566a' },
+            forest: { primary: '#95d5b2', border: '#3d5a40' }
+        };
+
+        function applyCardThemes() {
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            document.querySelectorAll('.tool-card').forEach(card => {
+                const href = card.getAttribute('href');
+                if (!href) return;
+                const toolId = href.replace('.html', '');
+                const theme = saved[toolId];
+                if (!theme || theme === 'dark') return;
+
+                const colors = themeColors[theme];
+                if (!colors) return;
+
+                if (colors.border) {
+                    card.style.borderColor = colors.border;
+                }
+                const icon = card.querySelector('.tool-icon');
+                if (icon && colors.primary) {
+                    icon.style.color = colors.primary;
+                }
+            });
+        }
+
+        applyCardThemes();
     </script>
 </body>
 
