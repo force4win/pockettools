@@ -254,6 +254,14 @@
             opacity: 0.6;
         }
 
+        .fertility-emoji {
+            position: absolute;
+            bottom: 1px;
+            left: 3px;
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
         /* Empty / No Cycle Info */
         .no-cycle-info {
             text-align: center;
@@ -340,13 +348,13 @@
                         <div class="legend-dot"
                             style="background: linear-gradient(to bottom, transparent 50%, rgba(255,0,127,0.3) 50%);">
                         </div>
-                        Fértil
+                        🛡️ Fértil
                     </div>
                     <div class="legend-item">
                         <div class="legend-dot"
                             style="background: linear-gradient(to bottom, transparent 50%, rgba(57,255,20,0.3) 50%);">
                         </div>
-                        Seguro
+                        😌 Seguro
                     </div>
                 </div>
 
@@ -490,12 +498,20 @@
                         else if (cycleDay >= 12 && cycleDay <= 18) dayEl.classList.add('cycle-phase-3');
                         else if (cycleDay >= 19 && cycleDay <= 28) dayEl.classList.add('cycle-phase-4');
 
-                        // Fertility indicator (bottom half)
-                        if (cycleDay >= 1 && cycleDay <= 7) dayEl.classList.add('split-radiant-green');
-                        else if (cycleDay >= 8 && cycleDay <= 19) dayEl.classList.add('split-radiant-red');
-                        else if (cycleDay >= 20 && cycleDay <= 28) dayEl.classList.add('split-radiant-green');
+                        // Fertility indicator (bottom half) + emoji
+                        let fertilityEmoji = '';
+                        if (cycleDay >= 1 && cycleDay <= 7) {
+                            dayEl.classList.add('split-radiant-green');
+                            fertilityEmoji = '😌';
+                        } else if (cycleDay >= 8 && cycleDay <= 19) {
+                            dayEl.classList.add('split-radiant-red');
+                            fertilityEmoji = '🛡️';
+                        } else if (cycleDay >= 20 && cycleDay <= 28) {
+                            dayEl.classList.add('split-radiant-green');
+                            fertilityEmoji = '😌';
+                        }
 
-                        content = `${i}<span class="cycle-day-number">${cycleDay}</span>`;
+                        content = `${i}<span class="fertility-emoji">${fertilityEmoji}</span><span class="cycle-day-number">${cycleDay}</span>`;
                     }
                 }
 
