@@ -178,54 +178,120 @@
             border-top: 1px solid var(--border-color);
         }
 
-        /* Add Person Row */
-        .add-person-row {
-            display: flex;
-            gap: 8px;
-            margin-top: 12px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-
-        .add-person-row input {
-            flex: 1;
-            min-width: 100px;
-            padding: 8px 12px;
-            background: rgba(0, 0, 0, 0.15);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            color: var(--text-color);
-            font-family: inherit;
-            font-size: 0.85rem;
-            outline: none;
-        }
-
-        .add-person-row input:focus {
-            border-color: var(--primary-color);
-        }
-
-        .add-person-row input::placeholder {
+        /* Add Person Form (New) */
+        .btn-show-add {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
             color: var(--text-muted);
-        }
-
-        .btn-add-person {
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            width: 36px;
-            height: 36px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+            font-family: inherit;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
+            gap: 8px;
             font-size: 0.9rem;
-            transition: all 0.2s;
-            flex-shrink: 0;
         }
 
-        .btn-add-person:hover {
-            opacity: 0.85;
+        .btn-show-add:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            border-color: var(--text-muted);
+        }
+
+        .add-person-form {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            display: none;
+            /* Hidden by default */
+            flex-direction: column;
+            gap: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .add-person-form.visible {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .add-person-form input,
+        .add-person-form textarea {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .add-person-form textarea {
+            resize: vertical;
+            min-height: 80px;
+            line-height: 1.5;
+        }
+
+        .add-person-form input:focus,
+        .add-person-form textarea:focus {
+            border-color: var(--primary-color);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 4px;
+        }
+
+        .btn-form {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-family: inherit;
+            font-size: 0.9rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-form.cancel {
+            background: transparent;
+            color: var(--text-muted);
+        }
+
+        .btn-form.cancel:hover {
+            color: var(--text-color);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .btn-form.save {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-form.save:hover {
+            opacity: 0.9;
         }
 
         /* Person Items */
@@ -250,15 +316,15 @@
         }
 
         .person-avatar {
-            width: 32px;
-            height: 32px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: var(--primary-color);
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             color: white;
             flex-shrink: 0;
             text-transform: uppercase;
@@ -271,16 +337,18 @@
 
         .person-name {
             font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             line-height: 1.3;
         }
 
         .person-desc {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: var(--text-muted);
-            margin-top: 2px;
-            line-height: 1.4;
+            margin-top: 4px;
+            line-height: 1.5;
             word-break: break-word;
+            white-space: pre-wrap;
+            /* Preserve newlines */
         }
 
         .btn-person-delete {
@@ -495,6 +563,8 @@
         // === Data ===
         let sites = JSON.parse(localStorage.getItem('pt_tracker_sites') || '[]');
         let openSites = new Set();
+        // Track open forms per site
+        let openForms = new Set();
 
         function save() {
             localStorage.setItem('pt_tracker_sites', JSON.stringify(sites));
@@ -536,6 +606,7 @@
             if (confirm(`¿Eliminar "${site?.name}" y sus ${count} persona(s)?`)) {
                 sites = sites.filter(s => s.id !== id);
                 openSites.delete(id);
+                openForms.delete(id);
                 save();
                 render();
             }
@@ -571,6 +642,19 @@
         }
 
         // === Person Actions ===
+        function toggleAddForm(siteId) {
+            if (openForms.has(siteId)) openForms.delete(siteId);
+            else {
+                openForms.add(siteId);
+                // Simple auto-focus logic after render
+                setTimeout(() => {
+                    const input = document.getElementById(`person-name-${siteId}`);
+                    if (input) input.focus();
+                }, 100);
+            }
+            render();
+        }
+
         function addPerson(siteId) {
             const nameInput = document.getElementById(`person-name-${siteId}`);
             const descInput = document.getElementById(`person-desc-${siteId}`);
@@ -583,11 +667,20 @@
             if (site) {
                 site.persons.push({ id: genId(), name, desc });
                 save();
+
+                // Keep form open but clear inputs to add more?
+                // Or close form? User said "when I want to add", implying maybe one by one.
+                // But usually better to keep open if adding multiple.
+                // Let's clear inputs and keep form open for now, or close.
+                // Req: "should appear only when we are going to add new people" -> toggle.
+                // Let's close form to keep it clean, or keep it open?
+                // "Agregar varias caracteristicas" = textarea lines.
+                // I'll clear it and keep it open for rapid entry, simpler.
+                nameInput.value = '';
+                descInput.value = '';
+                nameInput.focus();
+
                 render();
-                setTimeout(() => {
-                    const ni = document.getElementById(`person-name-${siteId}`);
-                    if (ni) ni.focus();
-                }, 50);
             }
         }
 
@@ -668,6 +761,7 @@
 
             filtered.forEach(site => {
                 const isOpen = openSites.has(site.id);
+                const isFormOpen = openForms.has(site.id);
                 const el = document.createElement('div');
                 el.className = `site-card${isOpen ? ' open' : ''}${site.pinned ? ' pinned' : ''}`;
 
@@ -710,6 +804,29 @@
                     `;
                 });
 
+                // Form HTML - only show inputs if isFormOpen is true OR force simple structure
+                // But better to render them hidden/visible via class to preserve input values if re-rendering?
+                // Actually, re-rendering destroys inputs. So toggleAddForm calls render(), losing input state.
+                // We should probably save input state or just accept it clears on toggle.
+                // "isFormOpen" drives the "visible" class.
+
+                const formHtml = `
+                    <div class="add-person-form ${isFormOpen ? 'visible' : ''}">
+                        <input type="text" id="person-name-${site.id}" placeholder="Nombre completo...">
+                        <textarea id="person-desc-${site.id}" placeholder="Descripción, rol, notas (Enter para saltos de línea)..." rows="3"></textarea>
+                        <div class="form-actions">
+                            <button class="btn-form cancel" onclick="toggleAddForm('${site.id}')">Cancelar</button>
+                            <button class="btn-form save" onclick="addPerson('${site.id}')">Guardar Persona</button>
+                        </div>
+                    </div>
+                `;
+
+                const toggleBtn = !isFormOpen
+                    ? `<button class="btn-show-add" onclick="toggleAddForm('${site.id}')">
+                         <i class="fa-solid fa-user-plus"></i> Agregar Persona
+                       </button>`
+                    : '';
+
                 el.innerHTML = `
                     <div class="site-header" onclick="toggleSite('${site.id}')">
                         <i class="fa-solid fa-chevron-right site-chevron"></i>
@@ -728,15 +845,8 @@
                     </div>
                     <div class="site-body">
                         <div class="site-body-inner">
-                            <div class="add-person-row">
-                                <input type="text" id="person-name-${site.id}" placeholder="Nombre..."
-                                    onkeypress="if(event.key==='Enter'){document.getElementById('person-desc-${site.id}').focus();}">
-                                <input type="text" id="person-desc-${site.id}" placeholder="Descripción..."
-                                    onkeypress="if(event.key==='Enter') addPerson('${site.id}')">
-                                <button class="btn-add-person" onclick="addPerson('${site.id}')">
-                                    <i class="fa-solid fa-user-plus"></i>
-                                </button>
-                            </div>
+                            ${toggleBtn}
+                            ${formHtml}
                             <div class="persons-list">${personsHtml}</div>
                         </div>
                     </div>
