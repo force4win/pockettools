@@ -11,12 +11,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Lock viewport: only calendar-scroll scrolls */
+        /* Lock layout: only calendar-scroll scrolls */
         html,
         body {
-            height: 100%;
             margin: 0;
+            padding: 0;
             overflow: hidden;
+            height: 100dvh;
+            height: 100vh;
+            /* fallback */
         }
 
         /* === Date Panel === */
@@ -28,7 +31,10 @@
         }
 
         .app-container.tool-view {
-            height: 100%;
+            height: 100dvh;
+            height: 100vh;
+            /* fallback */
+            max-height: -webkit-fill-available;
             overflow: hidden;
             padding: 12px;
             padding-bottom: 0;
