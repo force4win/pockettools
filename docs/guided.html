@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PocketTools | Notas Guiadas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Search Bar */
+        .search-bar {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .search-bar .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        .search-bar .btn-clear-search {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-muted);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.2s;
+        }
+
+        .search-bar .btn-clear-search:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-color);
+        }
+
+        .search-bar .btn-clear-search.visible {
+            display: flex;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 40px 12px 40px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-bar input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .search-bar input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Add Note Panel */
+        .add-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 14px;
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            align-items: flex-end;
+        }
+
+        .add-panel .input-group {
+            flex: 1;
+            margin: 0;
+        }
+
+        .btn-add-note {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            height: fit-content;
+        }
+
+        .btn-add-note:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* Accordion Notes */
+        .notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .guided-note {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .note-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.15s;
+        }
+
+        .note-header:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .note-chevron {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            transition: transform 0.3s;
+            flex-shrink: 0;
+            width: 16px;
+            text-align: center;
+        }
+
+        .guided-note.open .note-chevron {
+            transform: rotate(90deg);
+        }
+
+        .note-title {
+            flex: 1;
+            font-weight: 600;
+            font-size: 1rem;
+            line-height: 1.3;
+        }
+
+        .note-coords {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: block;
+            font-weight: 400;
+            margin-top: 2px;
+        }
+
+        .note-actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .btn-note-action {
+            background: rgba(255, 255, 255, 0.06);
+            border: none;
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+        }
+
+        .btn-note-action:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: var(--text-color);
+        }
+
+        .btn-note-action.btn-maps {
+            color: #10b981;
+        }
+
+        .btn-note-action.btn-maps:hover {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .btn-note-action.btn-delete {
+            color: #ef4444;
+        }
+
+        .btn-note-action.btn-delete:hover {
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        /* Accordion Body */
+        .note-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease;
+        }
+
+        .guided-note.open .note-body {
+            max-height: 2000px;
+        }
+
+        .note-body-inner {
+            padding: 0 14px 14px 14px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Add Item Row */
+        .add-item-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            margin-bottom: 8px;
+        }
+
+        .add-item-row input {
+            flex: 1;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .add-item-row input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .add-item-row input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn-add-item {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-add-item:hover {
+            opacity: 0.85;
+        }
+
+        /* Items List */
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .guided-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            transition: background 0.15s;
+        }
+
+        .guided-item:hover {
+            background: rgba(0, 0, 0, 0.18);
+        }
+
+        .guided-item .item-icon {
+            color: var(--primary-color);
+            font-size: 0.55rem;
+            flex-shrink: 0;
+        }
+
+        .guided-item .item-text {
+            flex: 1;
+            line-height: 1.4;
+        }
+
+        .guided-item .item-text.highlight {
+            background: color-mix(in srgb, var(--primary-color) 20%, transparent);
+            border-radius: 4px;
+            padding: 0 4px;
+        }
+
+        .btn-item-delete {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 2px;
+            font-size: 0.75rem;
+            transition: color 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-item-delete:hover {
+            color: #ef4444;
+        }
+
+        /* No GPS badge */
+        .no-gps-badge {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px 20px;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            opacity: 0.3;
+            margin-bottom: 12px;
+        }
+
+        /* Search match count */
+        .search-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: right;
+            margin-bottom: 8px;
+            min-height: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container tool-view active">
+        <div class="tool-header">
+            <a href="index.html" class="back-btn" aria-label="Volver">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h2 class="tool-title" style="flex:1;">Notas Guiadas</h2>
+            <button id="theme-toggle" class="secondary-btn" aria-label="Cambiar Tema"
+                style="padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+
+        <div id="tool-content" style="flex: 1; display: flex; flex-direction: column;">
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 14px; font-size: 0.85rem;">
+                <i class="fa-solid fa-location-dot"></i> Notas con referencia geográfica
+            </p>
+
+            <!-- Add Note -->
+            <div class="add-panel">
+                <div class="input-group">
+                    <label>Título de la nota</label>
+                    <input type="text" id="inputTitle" class="glass-input" placeholder="Ej: Restaurante favorito...">
+                </div>
+                <button class="btn-add-note" onclick="addNote()">
+                    <i class="fa-solid fa-location-crosshairs"></i> Agregar
+                </button>
+            </div>
+
+            <!-- Search -->
+            <div class="search-bar">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Buscar en ítems..." oninput="onSearchInput()">
+                <button class="btn-clear-search" id="btnClearSearch" onclick="clearSearch()" title="Limpiar búsqueda">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="search-info" id="searchInfo"></div>
+
+            <!-- Notes List -->
+            <div class="notes-list" id="notesList"></div>
+        </div>
+    </div>
+
+    <script>
+        // === Theme System ===
+        const TOOL_ID = 'guided';
+        const themeBtn = document.getElementById('theme-toggle');
+
+        function loadTheme() {
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            applyTheme(saved[TOOL_ID] || 'dark');
+        }
+
+        function toggleTheme() {
+            const list = ['dark', 'light', 'matrix', 'kids', 'cyberpunk', 'nordic', 'forest'];
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            let current = saved[TOOL_ID] || 'dark';
+            let idx = list.indexOf(current);
+            if (idx === -1) idx = 0;
+            const next = list[(idx + 1) % list.length];
+            saved[TOOL_ID] = next;
+            localStorage.setItem('pt_tool_themes', JSON.stringify(saved));
+            applyTheme(next);
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') document.documentElement.removeAttribute('data-theme');
+            else document.documentElement.setAttribute('data-theme', theme);
+            updateThemeIcon(theme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = themeBtn.querySelector('i');
+            icon.className = ''; icon.style.color = '';
+            switch (theme) {
+                case 'light': icon.className = 'fa-solid fa-sun'; icon.style.color = '#f59e0b'; break;
+                case 'matrix': icon.className = 'fa-solid fa-terminal'; icon.style.color = '#00ff41'; break;
+                case 'kids': icon.className = 'fa-solid fa-shapes'; icon.style.color = '#ef4444'; break;
+                case 'cyberpunk': icon.className = 'fa-solid fa-robot'; icon.style.color = '#00ffff'; break;
+                case 'nordic': icon.className = 'fa-regular fa-snowflake'; icon.style.color = '#88c0d0'; break;
+                case 'forest': icon.className = 'fa-solid fa-tree'; icon.style.color = '#95d5b2'; break;
+                default: icon.className = 'fa-solid fa-moon'; break;
+            }
+        }
+
+        themeBtn.addEventListener('click', toggleTheme);
+        loadTheme();
+
+        // === Data ===
+        let notes = JSON.parse(localStorage.getItem('pt_guided_notes') || '[]');
+        let openNotes = new Set(); // Track which notes are expanded
+
+        function save() {
+            localStorage.setItem('pt_guided_notes', JSON.stringify(notes));
+        }
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // === Add Note with GPS ===
+        function addNote() {
+            const title = document.getElementById('inputTitle').value.trim();
+            if (!title) {
+                alert('Por favor escribe un título para la nota.');
+                return;
+            }
+
+            // Try to get geolocation
+            if (navigator.geolocation) {
+                // Show loading state
+                const btn = document.querySelector('.btn-add-note');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> GPS...';
+                btn.disabled = true;
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        createNote(title, position.coords.latitude, position.coords.longitude);
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                    },
+                    (error) => {
+                        console.warn('GPS error:', error.message);
+                        // Create note without GPS
+                        createNote(title, null, null);
+                        btn.innerHTML = originalHTML;
+                        btn.disabled = false;
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+                );
+            } else {
+                // No geolocation support
+                createNote(title, null, null);
+            }
+        }
+
+        function createNote(title, lat, lng) {
+            const note = {
+                id: generateId(),
+                title: title,
+                lat: lat,
+                lng: lng,
+                items: [],
+                createdAt: new Date().toISOString()
+            };
+
+            notes.unshift(note);
+            openNotes.add(note.id);
+            save();
+            renderNotes();
+            document.getElementById('inputTitle').value = '';
+        }
+
+        // === Note Actions ===
+        function deleteNote(id) {
+            if (confirm('¿Eliminar esta nota y todos sus ítems?')) {
+                notes = notes.filter(n => n.id !== id);
+                openNotes.delete(id);
+                save();
+                renderNotes();
+            }
+        }
+
+        function openMaps(lat, lng) {
+            window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+        }
+
+        function toggleNote(id) {
+            if (openNotes.has(id)) openNotes.delete(id);
+            else openNotes.add(id);
+            renderNotes();
+        }
+
+        function addItem(noteId) {
+            const input = document.getElementById(`item-input-${noteId}`);
+            const text = input.value.trim();
+            if (!text) return;
+
+            const note = notes.find(n => n.id === noteId);
+            if (note) {
+                note.items.push({ id: generateId(), text });
+                save();
+                renderNotes();
+                // Re-focus input after render
+                setTimeout(() => {
+                    const newInput = document.getElementById(`item-input-${noteId}`);
+                    if (newInput) newInput.focus();
+                }, 50);
+            }
+        }
+
+        function deleteItem(noteId, itemId) {
+            const note = notes.find(n => n.id === noteId);
+            if (note) {
+                note.items = note.items.filter(i => i.id !== itemId);
+                save();
+                renderNotes();
+            }
+        }
+
+        // === Render ===
+        function renderNotes() {
+            const container = document.getElementById('notesList');
+            const searchInfo = document.getElementById('searchInfo');
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+
+            container.innerHTML = '';
+
+            if (notes.length === 0) {
+                searchInfo.textContent = '';
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                        <p>No hay notas guiadas aún.<br>Agrega una para capturar tu ubicación.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Filter notes based on search query (search in items)
+            let filteredNotes = notes;
+            if (query) {
+                filteredNotes = notes.filter(note => {
+                    // Also match in title
+                    if (note.title.toLowerCase().includes(query)) return true;
+                    // Match in items
+                    return note.items.some(item =>
+                        item.text.toLowerCase().includes(query)
+                    );
+                });
+
+                searchInfo.textContent = `${filteredNotes.length} de ${notes.length} nota(s)`;
+            } else {
+                searchInfo.textContent = '';
+            }
+
+            if (filteredNotes.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state" style="padding: 20px;">
+                        <p>No se encontraron coincidencias.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filteredNotes.forEach(note => {
+                const isOpen = openNotes.has(note.id);
+                const hasGPS = note.lat !== null && note.lng !== null;
+
+                const el = document.createElement('div');
+                el.className = `guided-note ${isOpen ? 'open' : ''}`;
+
+                // Coords badge
+                let coordsHtml = '';
+                if (hasGPS) {
+                    coordsHtml = `<span class="note-coords">${note.lat.toFixed(5)}, ${note.lng.toFixed(5)}</span>`;
+                } else {
+                    coordsHtml = `<span class="no-gps-badge"><i class="fa-solid fa-location-crosshairs"></i> Sin GPS</span>`;
+                }
+
+                // Maps button
+                let mapsBtn = '';
+                if (hasGPS) {
+                    mapsBtn = `<button class="btn-note-action btn-maps" onclick="event.stopPropagation(); openMaps(${note.lat}, ${note.lng})" title="Abrir en Google Maps">
+                        <i class="fa-solid fa-map-location-dot"></i>
+                    </button>`;
+                }
+
+                // Items HTML
+                let itemsHtml = '';
+                note.items.forEach(item => {
+                    let displayText = item.text;
+
+                    // Highlight matching text if searching
+                    if (query) {
+                        const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                        displayText = item.text.replace(regex, '<mark style="background: color-mix(in srgb, var(--primary-color) 35%, transparent); color: var(--text-color); border-radius: 3px; padding: 0 2px;">$1</mark>');
+                    }
+
+                    itemsHtml += `
+                        <div class="guided-item">
+                            <i class="fa-solid fa-circle item-icon"></i>
+                            <span class="item-text">${displayText}</span>
+                            <button class="btn-item-delete" onclick="deleteItem('${note.id}', '${item.id}')" title="Eliminar ítem">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+
+                el.innerHTML = `
+                    <div class="note-header" onclick="toggleNote('${note.id}')">
+                        <i class="fa-solid fa-chevron-right note-chevron"></i>
+                        <div style="flex: 1;">
+                            <div class="note-title">${note.title}</div>
+                            ${coordsHtml}
+                        </div>
+                        <div class="note-actions" onclick="event.stopPropagation()">
+                            ${mapsBtn}
+                            <button class="btn-note-action btn-delete" onclick="deleteNote('${note.id}')" title="Eliminar nota">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="note-body">
+                        <div class="note-body-inner">
+                            <div class="add-item-row">
+                                <input type="text" id="item-input-${note.id}" placeholder="Nuevo ítem..."
+                                    onkeypress="if(event.key==='Enter') addItem('${note.id}')">
+                                <button class="btn-add-item" onclick="addItem('${note.id}')">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </div>
+                            <div class="items-list">${itemsHtml}</div>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(el);
+            });
+        }
+
+        // Search helpers
+        function onSearchInput() {
+            const clearBtn = document.getElementById('btnClearSearch');
+            const val = document.getElementById('searchInput').value;
+            clearBtn.classList.toggle('visible', val.length > 0);
+            renderNotes();
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            document.getElementById('btnClearSearch').classList.remove('visible');
+            renderNotes();
+            input.focus();
+        }
+
+        // Enter key on title input
+        document.getElementById('inputTitle').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addNote();
+        });
+
+        // Initial render
+        renderNotes();
+    </script>
+</body>
+
+</html>
