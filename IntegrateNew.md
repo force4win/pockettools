@@ -56,6 +56,7 @@ pockettools/
 | `tracker`   | Seguimiento Personas    | `fa-solid fa-people-arrows`             | `tracker.html`  |
 | `ritmo`     | Calendario Ciclo        | `fa-solid fa-calendar-days`             | `ritmo.html`    |
 | `rutina`    | RutinaQuest             | `fa-solid fa-shield-halved`             | `rutina.html`   |
+| `guia`      | Guía TV                 | `fa-solid fa-tv`                        | `guia-tv.html`  |
 
 ---
 
