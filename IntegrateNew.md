@@ -55,6 +55,7 @@ pockettools/
 | `guided`    | Notas Guiadas           | `fa-solid fa-map-location-dot`          | `guided.html`   |
 | `tracker`   | Seguimiento Personas    | `fa-solid fa-people-arrows`             | `tracker.html`  |
 | `ritmo`     | Calendario Ciclo        | `fa-solid fa-calendar-days`             | `ritmo.html`    |
+| `rutina`    | RutinaQuest             | `fa-solid fa-shield-halved`             | `rutina.html`   |
 
 ---
 

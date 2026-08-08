@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PocketTools | RutinaQuest</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+      /* ---- RutinaQuest internal theme variables ---- */
+      .rq-wrap {
+        --rq-accent: #00e0ff;
+        --rq-accent2: #ff2fb0;
+        --rq-gold: #ffd166;
+        --rq-green: #5cff9d;
+        --rq-card: rgba(26,24,54,0.55);
+        --rq-border: rgba(0,224,255,0.14);
+        --rq-shadow: rgba(0,224,255,0.09);
+        --rq-text: #eef0ff;
+        --rq-muted: #9a9bc0;
+        --rq-radius: 16px;
+        --rq-armor-main: #7d7d8a;
+        --rq-armor-dark: #52525c;
+        --rq-armor-trim: #a8a8b5;
+        --rq-grid-color: rgba(255,255,255,0.04);
+        --rq-bg-grad: linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+      }
+      .rq-wrap[data-rq-theme="neon"]{
+        --rq-accent:#00e0ff;--rq-accent2:#ff2fb0;--rq-gold:#ffd166;--rq-green:#5cff9d;
+        --rq-card:rgba(26,24,54,0.55);--rq-border:rgba(0,224,255,0.14);--rq-shadow:rgba(0,224,255,0.09);
+        --rq-text:#eef0ff;--rq-muted:#9a9bc0;--rq-grid-color:rgba(0,224,255,0.04);
+        --rq-bg-grad:linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+      }
+      .rq-wrap[data-rq-theme="rpg"]{
+        --rq-accent:#ffb703;--rq-accent2:#e85d04;--rq-gold:#ffd166;--rq-green:#8ac926;
+        --rq-card:rgba(36,28,18,0.6);--rq-border:rgba(255,183,3,0.14);--rq-shadow:rgba(255,183,3,0.09);
+        --rq-text:#fff3e0;--rq-muted:#c9a877;--rq-grid-color:rgba(255,183,3,0.04);
+        --rq-bg-grad:linear-gradient(135deg,#1a1206,#3b2a12,#241a0c);
+      }
+      .rq-wrap[data-rq-theme="forest"]{
+        --rq-accent:#3ddc97;--rq-accent2:#7bd389;--rq-gold:#e9c46a;--rq-green:#52d17c;
+        --rq-card:rgba(18,32,25,0.6);--rq-border:rgba(61,220,151,0.14);--rq-shadow:rgba(61,220,151,0.09);
+        --rq-text:#eafff2;--rq-muted:#8fb5a3;--rq-grid-color:rgba(61,220,151,0.04);
+        --rq-bg-grad:linear-gradient(135deg,#08150f,#123524,#0d2418);
+      }
+      .rq-wrap[data-rq-theme="sunset"]{
+        --rq-accent:#ff6b6b;--rq-accent2:#ffa62b;--rq-gold:#ffe066;--rq-green:#f77f00;
+        --rq-card:rgba(42,18,36,0.6);--rq-border:rgba(255,107,107,0.14);--rq-shadow:rgba(255,107,107,0.09);
+        --rq-text:#fff0e6;--rq-muted:#d9a3c4;--rq-grid-color:rgba(255,107,107,0.04);
+        --rq-bg-grad:linear-gradient(135deg,#210b1b,#4a1942,#2c0f28);
+      }
+      .rq-wrap[data-rq-theme="ocean"]{
+        --rq-accent:#48cae4;--rq-accent2:#0096c7;--rq-gold:#ffd60a;--rq-green:#2ec4b6;
+        --rq-card:rgba(8,40,62,0.6);--rq-border:rgba(72,202,228,0.14);--rq-shadow:rgba(72,202,228,0.09);
+        --rq-text:#e6f7ff;--rq-muted:#8fb8cc;--rq-grid-color:rgba(72,202,228,0.04);
+        --rq-bg-grad:linear-gradient(135deg,#031321,#0a3552,#062338);
+      }
+      .rq-wrap[data-rq-theme="light"]{
+        --rq-accent:#5b5fef;--rq-accent2:#e8489a;--rq-gold:#f2a30f;--rq-green:#12a86a;
+        --rq-card:rgba(255,255,255,0.7);--rq-border:rgba(91,95,239,0.18);--rq-shadow:rgba(91,95,239,0.06);
+        --rq-text:#1f1b3d;--rq-muted:#6b6890;--rq-grid-color:rgba(91,95,239,0.04);
+        --rq-bg-grad:linear-gradient(135deg,#eef1ff,#e3e8ff,#f4f0ff);
+      }
+
+      /* ---- RutinaQuest wrapper: full-page hero background ---- */
+      .rq-wrap {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: var(--rq-bg-grad);
+        color: var(--rq-text);
+        font-family: 'Outfit', sans-serif;
+        position: relative;
+        border-radius: var(--radius);
+        transition: background 0.4s ease, color 0.4s ease;
+        padding-bottom: 60px;
+      }
+
+      /* ---- Ambient orbs ---- */
+      .rq-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.18;
+        pointer-events: none;
+        transition: background 0.4s ease;
+      }
+      .rq-orb1 { width:260px;height:260px;background:var(--rq-accent);top:-60px;left:-60px;animation:rqOrb1 18s infinite alternate ease-in-out; }
+      .rq-orb2 { width:220px;height:220px;background:var(--rq-accent2);bottom:-40px;right:-40px;animation:rqOrb2 22s infinite alternate ease-in-out; }
+      .rq-orb3 { width:160px;height:160px;background:var(--rq-gold);top:45%;left:65%;animation:rqOrb3 28s infinite alternate ease-in-out; }
+      @keyframes rqOrb1{0%{transform:translate(0,0) scale(1);}100%{transform:translate(80px,50px) scale(1.12);}}
+      @keyframes rqOrb2{0%{transform:translate(0,0) scale(1.08);}100%{transform:translate(-60px,-80px) scale(0.92);}}
+      @keyframes rqOrb3{0%{transform:translate(0,0) scale(0.95);}100%{transform:translate(-50px,50px) scale(1.08);}}
+
+      .rq-wrap[data-rq-theme="light"] .rq-orb { opacity: 0.06; }
+
+      /* ---- Level up overlay ---- */
+      .rq-levelup-overlay {
+        position: fixed;top:0;left:0;right:0;bottom:0;
+        background: rgba(10,8,25,0.88);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        display: flex;align-items: center;justify-content: center;
+        z-index: 1100;opacity: 0;pointer-events: none;
+        transition: opacity 0.5s ease;
+      }
+      .rq-levelup-overlay.show { opacity: 1; pointer-events: auto; }
+      .rq-levelup-content {
+        text-align: center;
+        transform: scale(0.85);
+        transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+      }
+      .rq-levelup-overlay.show .rq-levelup-content { transform: scale(1); }
+      .rq-levelup-title {
+        font-size: 2rem;font-weight: 800;
+        background: linear-gradient(90deg,var(--rq-gold),#ff9a3c);
+        -webkit-background-clip: text;background-clip: text;color: transparent;
+        letter-spacing: 2px;margin-bottom: 12px;
+        filter: drop-shadow(0 0 10px rgba(255,209,102,0.5));
+      }
+      .rq-levelup-number {
+        font-size: 4.8rem;font-weight: 900;color: #fff;
+        text-shadow: 0 0 25px var(--rq-accent),0 0 50px var(--rq-accent2);
+        line-height: 1;margin-bottom: 20px;
+        animation: rqLevelGlow 2.2s infinite alternate ease-in-out;
+      }
+      .rq-levelup-sub { font-size: 1rem;color: var(--rq-muted); }
+      @keyframes rqLevelGlow {
+        0%{text-shadow:0 0 20px var(--rq-accent),0 0 45px var(--rq-accent2);}
+        100%{text-shadow:0 0 35px var(--rq-gold),0 0 70px #ff9a3c;}
+      }
+
+      /* ---- Floating XP bar (top) ---- */
+      .rq-xp-float {
+        position: sticky;top: 0;left: 0;right: 0;
+        z-index: 200;
+        display: flex;justify-content: center;
+        padding: 10px 14px;
+        background: rgba(15,12,41,0.88);
+        backdrop-filter: blur(12px);-webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        transform: translateY(-110%);opacity: 0;
+        transition: transform 0.35s cubic-bezier(0.16,1,0.3,1),opacity 0.35s ease;
+        pointer-events: none;
+      }
+      .rq-wrap[data-rq-theme="light"] .rq-xp-float { background: rgba(238,241,255,0.88); }
+      .rq-xp-float.visible { transform: translateY(0);opacity: 1;pointer-events: auto; }
+      .rq-xp-float-inner { display:flex;align-items:center;gap:10px;width:100%;max-width:800px; }
+      .rq-xp-float-avatar { font-size: 1.15rem;flex-shrink: 0; }
+      .rq-xp-float-level {
+        background: linear-gradient(90deg,var(--rq-gold),#ff9a3c);color: #3a2600;
+        padding: 3px 10px;border-radius: 20px;font-weight: 700;font-size: .76rem;
+        flex-shrink: 0;white-space: nowrap;box-shadow: 0 0 10px rgba(255,209,102,0.3);
+      }
+      .rq-xp-float-bar-outer {
+        flex: 1;background: rgba(0,0,0,.4);border-radius: 20px;height: 9px;overflow: hidden;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,.6);min-width: 50px;border: 1px solid rgba(255,255,255,0.05);
+      }
+      .rq-xp-float-bar-inner {
+        height: 100%;background: linear-gradient(90deg,var(--rq-accent),var(--rq-accent2));
+        width: 0%;border-radius: 20px;transition: width .5s cubic-bezier(0.16,1,0.3,1);
+        box-shadow: 0 0 8px var(--rq-accent);
+      }
+      .rq-xp-float-bar-inner.pulse { animation: rqXpPulse .5s ease; }
+      @keyframes rqXpPulse{0%{filter:brightness(1);}40%{filter:brightness(1.6);}100%{filter:brightness(1);}}
+      .rq-xp-float-text,.rq-xp-float-streak { font-size:.76rem;color:var(--rq-muted);font-weight:600;white-space:nowrap;flex-shrink:0; }
+
+      /* ---- Main container ---- */
+      .rq-container { max-width: 820px;margin: 0 auto;padding: 0 14px; }
+
+      /* ---- Header interno ---- */
+      .rq-hero-header { text-align: center;padding: 24px 14px 8px;position: relative; }
+      .rq-hero-header h2 {
+        margin: 0;font-size: 2rem;font-weight: 800;letter-spacing: 1px;
+        background: linear-gradient(90deg,var(--rq-accent),var(--rq-accent2));
+        -webkit-background-clip: text;background-clip: text;color: transparent;
+        filter: drop-shadow(0 2px 8px rgba(0,224,255,0.15));
+      }
+      .rq-hero-header p { color: var(--rq-muted);margin: 6px 0 0;font-size: .95rem; }
+
+      /* ---- Theme picker ---- */
+      .rq-theme-picker { position: relative;max-width: 820px;margin: 10px auto 0;padding: 0 14px;display: flex;justify-content: center; }
+      .rq-theme-picker-btn {
+        background: var(--rq-card);border: 1px solid var(--rq-border);
+        backdrop-filter: blur(12px);-webkit-backdrop-filter: blur(12px);
+        color: var(--rq-text);padding: 7px 16px;border-radius: 20px;
+        font-weight: 600;font-size: .82rem;cursor: pointer;
+        display: flex;align-items: center;gap: 7px;
+        box-shadow: 0 4px 18px var(--rq-shadow);transition: all .3s ease;
+      }
+      .rq-theme-picker-btn:hover { transform: translateY(-1px);border-color: var(--rq-accent); }
+      .rq-theme-swatch-mini { width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,var(--rq-accent),var(--rq-accent2));flex-shrink:0; }
+      .rq-theme-dropdown {
+        position: absolute;top: calc(100% + 8px);left: 50%;transform: translateX(-50%) translateY(-8px);
+        background: var(--rq-card);border: 1px solid var(--rq-border);
+        backdrop-filter: blur(20px);-webkit-backdrop-filter: blur(20px);
+        border-radius: 14px;padding: 10px;display: grid;grid-template-columns: repeat(3,1fr);
+        gap: 7px;box-shadow: 0 12px 35px rgba(0,0,0,.5);
+        opacity: 0;pointer-events: none;
+        transition: opacity .25s ease,transform .25s ease;z-index: 250;width: 260px;
+      }
+      .rq-theme-dropdown.open { opacity: 1;pointer-events: auto;transform: translateX(-50%) translateY(0); }
+      .rq-theme-option {
+        display: flex;flex-direction: column;align-items: center;gap: 5px;
+        background: rgba(255,255,255,.03);border: 2px solid transparent;
+        border-radius: 10px;padding: 9px 4px;cursor: pointer;
+        transition: border-color .2s,transform .15s,background .2s;
+      }
+      .rq-theme-option:hover { transform: translateY(-2px);background: rgba(255,255,255,.07); }
+      .rq-theme-option.selected { border-color: var(--rq-accent);background: rgba(255,255,255,0.05); }
+      .rq-theme-option .rq-swatch { width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,.15); }
+      .rq-theme-option .rq-theme-name { font-weight:600;font-size:.68rem;color:var(--rq-muted);text-align:center;line-height:1.1; }
+
+      /* ---- Cards glass ---- */
+      .rq-card {
+        background: var(--rq-card);border: 1px solid var(--rq-border);
+        backdrop-filter: blur(16px);-webkit-backdrop-filter: blur(16px);
+        box-shadow: 0 8px 32px var(--rq-shadow);border-radius: var(--rq-radius);
+        transition: background .4s,border-color .4s,box-shadow .4s,transform .2s;
+      }
+
+      /* ---- Player card ---- */
+      .rq-player-card { padding: 20px;margin: 16px 0;display: flex;flex-wrap: wrap;align-items: center;gap: 18px;scroll-margin-top: 60px; }
+      .rq-avatar {
+        width: 68px;height: 68px;border-radius: 50%;flex-shrink: 0;
+        background: radial-gradient(circle at 30% 30%,var(--rq-accent),var(--rq-accent2));
+        display: flex;align-items: center;justify-content: center;font-size: 1.8rem;
+        box-shadow: 0 0 20px rgba(0,224,255,.4);
+        animation: rqAvatarPulse 4s infinite alternate ease-in-out;
+      }
+      @keyframes rqAvatarPulse{0%{transform:scale(1);box-shadow:0 0 18px rgba(0,224,255,.4);}100%{transform:scale(1.05);box-shadow:0 0 28px rgba(255,47,176,.5);}}
+      .rq-player-info { flex: 1;min-width: 200px; }
+      .rq-name-row { display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:7px; }
+      .rq-player-info h3 { margin:0;font-weight:700;font-size:1.2rem;letter-spacing:0.5px;color:var(--rq-text); }
+      .rq-level-badge {
+        background: linear-gradient(90deg,var(--rq-gold),#ff9a3c);color: #3a2600;
+        padding: 3px 12px;border-radius: 20px;font-weight: 700;font-size: .82rem;
+        box-shadow: 0 3px 10px rgba(255,209,102,0.3);
+      }
+      .rq-xp-bar-outer {
+        background: rgba(0,0,0,.4);border-radius: 20px;height: 12px;margin-top: 9px;
+        overflow: hidden;box-shadow: inset 0 2px 6px rgba(0,0,0,.6);border: 1px solid rgba(255,255,255,0.05);
+      }
+      .rq-xp-bar-inner {
+        height: 100%;background: linear-gradient(90deg,var(--rq-accent),var(--rq-accent2));
+        width: 0%;transition: width .5s cubic-bezier(0.16,1,0.3,1);border-radius: 20px;
+        box-shadow: 0 0 8px var(--rq-accent);
+      }
+      .rq-xp-bar-inner.pulse { animation: rqXpPulse .5s ease; }
+      .rq-xp-text { font-size:.78rem;font-weight:600;color:var(--rq-muted);margin-top:4px;display:flex;justify-content:space-between; }
+      .rq-stats-mini { display:flex;gap:12px;flex-wrap:wrap; }
+      .rq-stat-box {
+        text-align:center;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,0.03);
+        border-radius:12px;padding:9px 14px;min-width:72px;
+        transition:transform 0.2s,border-color 0.2s;
+      }
+      .rq-stat-box:hover { transform:translateY(-2px);border-color:var(--rq-border); }
+      .rq-wrap[data-rq-theme="light"] .rq-stat-box { background:rgba(0,0,0,.04); }
+      .rq-stat-box .rq-val { font-size:1.25rem;font-weight:800;color:var(--rq-accent); }
+      .rq-stat-box .rq-lbl { font-size:.68rem;font-weight:700;color:var(--rq-muted);text-transform:uppercase;margin-top:2px; }
+
+      /* ---- Today ring ---- */
+      .rq-today-card { padding:18px 20px;margin-bottom:16px;scroll-margin-top:60px; }
+      .rq-today-card h3 { margin:0 0 10px;font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--rq-muted); }
+      .rq-ring-row { display:flex;align-items:center;gap:18px; }
+      .rq-ring-svg-container { position:relative;width:68px;height:68px;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+      .rq-ring-svg { transform:rotate(-90deg); }
+      .rq-ring-active { transition:stroke-dashoffset 0.6s cubic-bezier(0.16,1,0.3,1);filter:drop-shadow(0 0 5px var(--rq-green)); }
+      .rq-ring-pct { position:absolute;font-weight:800;font-size:.82rem;color:var(--rq-text); }
+      .rq-ring-msg { color:var(--rq-muted);font-size:.92rem;line-height:1.4; }
+
+      /* ---- Warrior card ---- */
+      .rq-warrior-card { padding:18px 20px;margin-bottom:16px;scroll-margin-top:60px; }
+      .rq-warrior-card h3 { margin:0 0 3px;font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--rq-muted); }
+      .rq-warrior-sub { font-size:.82rem;color:var(--rq-muted);margin-bottom:10px;line-height:1.4; }
+      .rq-warrior-layout { display:flex;align-items:center;gap:20px;flex-wrap:wrap; }
+      .rq-warrior-stage { width:136px;height:176px;flex-shrink:0;position:relative; }
+      .rq-warrior-stage svg { width:100%;height:100%;display:block;overflow:visible;animation:rqWarriorBob 3.5s ease-in-out infinite alternate; }
+      @keyframes rqWarriorBob{0%{transform:translateY(0);}100%{transform:translateY(-5px);}}
+      .rq-warrior-info { flex:1;min-width:160px; }
+      .rq-armor-tier-name {
+        font-size:1.1rem;font-weight:800;margin-bottom:3px;
+        background:linear-gradient(90deg,var(--rq-gold),var(--rq-accent2));
+        -webkit-background-clip:text;background-clip:text;color:transparent;
+        filter:drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+      }
+      .rq-armor-next-hint { font-size:.75rem;color:var(--rq-muted);margin-bottom:12px; }
+      .rq-gear-checklist { display:flex;gap:7px;margin-bottom:7px;flex-wrap:wrap; }
+      .rq-gear-chip {
+        width:33px;height:33px;border-radius:9px;background:rgba(0,0,0,.22);
+        border:1px solid rgba(255,255,255,0.04);display:flex;align-items:center;justify-content:center;
+        font-size:1.05rem;opacity:.25;filter:grayscale(1);
+        transition:opacity .3s,filter .3s,transform .3s,box-shadow .3s,border-color .3s;
+      }
+      .rq-wrap[data-rq-theme="light"] .rq-gear-chip { background:rgba(0,0,0,.06); }
+      .rq-gear-chip.on { opacity:1;filter:none;border-color:rgba(255,209,102,0.4);box-shadow:0 0 10px rgba(255,209,102,.4);transform:translateY(-2px); }
+      .rq-gear-count { font-size:.75rem;color:var(--rq-muted);font-weight:600; }
+
+      /* ---- Armor SVG classes ---- */
+      .rq-armor-main { fill:var(--rq-armor-main);transition:fill 0.4s ease; }
+      .rq-armor-dark { fill:var(--rq-armor-dark);transition:fill 0.4s ease; }
+      .rq-armor-trim { fill:var(--rq-armor-trim);transition:fill 0.4s ease; }
+      .rq-armor-piece { opacity:0;transform:scale(.7) translateY(10px);transform-box:fill-box;transform-origin:center;transition:opacity .4s cubic-bezier(0.175,0.885,0.32,1.275),transform .4s cubic-bezier(0.175,0.885,0.32,1.275); }
+      .rq-armor-piece.equipped { opacity:1;transform:scale(1) translateY(0); }
+      .rq-armor-piece.just-equipped { animation:rqGearPop .6s cubic-bezier(.34,1.56,.64,1); }
+      @keyframes rqGearPop{0%{transform:scale(0.3) rotate(-10deg) translateY(20px);opacity:0;}60%{transform:scale(1.18) rotate(5deg) translateY(-5px);opacity:1;}100%{transform:scale(1) rotate(0deg) translateY(0);opacity:1;}}
+      #rq-piece-aura { transform-origin:center; }
+      #rq-piece-aura.equipped { animation:rqAuraPulse 2.5s ease-in-out infinite; }
+      @keyframes rqAuraPulse{0%,100%{opacity:.5;transform:scale(0.98);}50%{opacity:.85;transform:scale(1.04);}}
+      .rq-sparkle { opacity:0;transform-origin:center; }
+      #rq-piece-aura.equipped .rq-sparkle { animation:rqTwinkle 2s ease-in-out infinite; }
+      .rq-sparkle:nth-child(2n){animation-delay:.4s;}.rq-sparkle:nth-child(3n){animation-delay:.8s;}.rq-sparkle:nth-child(4n){animation-delay:1.2s;}
+      @keyframes rqTwinkle{0%,100%{opacity:0.2;transform:scale(.6);}50%{opacity:1;transform:scale(1.1);}}
+
+      /* ---- History / charts ---- */
+      .rq-history-card { padding:18px 20px;margin-bottom:16px; }
+      .rq-history-card h3 { margin:0 0 3px;font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--rq-muted); }
+      .rq-history-sub { font-size:.82rem;color:var(--rq-muted);margin-bottom:12px; }
+      .rq-chart-tabs { display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px; }
+      .rq-chart-tab-btn {
+        background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.06);
+        color:var(--rq-muted);padding:7px 14px;border-radius:20px;
+        font-weight:600;font-size:.78rem;cursor:pointer;transition:all .3s;white-space:nowrap;
+      }
+      .rq-wrap[data-rq-theme="light"] .rq-chart-tab-btn { background:rgba(0,0,0,.04); }
+      .rq-chart-tab-btn:hover:not(.active) { border-color:var(--rq-accent);color:var(--rq-accent); }
+      .rq-chart-tab-btn.active {
+        background:linear-gradient(90deg,var(--rq-accent),var(--rq-accent2));color:#0d0c1f;
+        font-weight:700;border-color:transparent;box-shadow:0 0 12px rgba(0,224,255,.4);transform:translateY(-1px);
+      }
+      .rq-chart-view { display:none; }
+      .rq-chart-view.active { display:block; }
+      svg.rq-chart-svg {
+        width:100%;height:auto;display:block;border-radius:10px;overflow:visible;
+        background:radial-gradient(ellipse at 50% 0%,rgba(255,255,255,.03),transparent 60%),rgba(0,0,0,.22);
+        border:1px solid rgba(255,255,255,0.04);
+      }
+      .rq-wrap[data-rq-theme="light"] svg.rq-chart-svg { background:radial-gradient(ellipse at 50% 0%,rgba(0,0,0,.01),transparent 60%),rgba(0,0,0,.02);border:1px solid rgba(0,0,0,0.03); }
+      .rq-chart-desc { font-size:.78rem;color:var(--rq-muted);margin-top:10px;line-height:1.4; }
+      .rq-anime-tag {
+        display:inline-block;font-size:.62rem;font-weight:800;letter-spacing:.8px;text-transform:uppercase;
+        padding:3px 9px;border-radius:20px;margin-bottom:10px;
+        background:linear-gradient(90deg,var(--rq-accent2),var(--rq-accent));color:#0d0c1f;
+        box-shadow:0 0 10px rgba(255,47,176,.3);
+      }
+
+      /* ---- Heatmap ---- */
+      .rq-heatmap { display:grid;grid-template-columns:repeat(15,1fr);gap:5px; }
+      .rq-heat-cell {
+        aspect-ratio:1/1;border-radius:5px;background:rgba(255,255,255,0.02);
+        border:1px solid rgba(255,255,255,0.04);position:relative;cursor:default;
+        display:flex;align-items:center;justify-content:center;overflow:visible;
+        transition:all 0.2s cubic-bezier(0.175,0.885,0.32,1.275);
+      }
+      .rq-heat-cell:hover { transform:scale(1.2);border-color:var(--rq-accent);box-shadow:0 0 8px var(--rq-shadow);z-index:10; }
+      .rq-heat-cell[data-lvl="1"]{background:linear-gradient(135deg,rgba(92,255,157,0.08),rgba(92,255,157,0.18));border-color:rgba(92,255,157,0.15);}
+      .rq-heat-cell[data-lvl="2"]{background:linear-gradient(135deg,rgba(92,255,157,0.2),rgba(92,255,157,0.38));border-color:rgba(92,255,157,0.3);}
+      .rq-heat-cell[data-lvl="3"]{background:linear-gradient(135deg,rgba(92,255,157,0.45),rgba(92,255,157,0.65));border-color:rgba(92,255,157,0.5);}
+      .rq-heat-cell[data-lvl="4"]{background:linear-gradient(135deg,var(--rq-green) 0%,#2fbf72 100%);border-color:var(--rq-green);box-shadow:0 0 8px 1px rgba(92,255,157,.5);animation:rqHeatGlow 2s ease-in-out infinite;}
+      @keyframes rqHeatGlow{0%,100%{box-shadow:0 0 5px 1px rgba(92,255,157,.4);}50%{box-shadow:0 0 12px 3px rgba(92,255,157,.75);}}
+      .rq-heat-cell.today-cell { border-color:var(--rq-accent);box-shadow:0 0 0 2px var(--rq-accent),0 0 10px rgba(0,224,255,.5); }
+      .rq-heat-star { font-size:.6rem;line-height:1;filter:drop-shadow(0 0 3px rgba(255,255,255,.9));color:#fff; }
+      .rq-heat-cell:hover::after {
+        content:attr(data-tip);position:absolute;bottom:125%;left:50%;transform:translateX(-50%);
+        background:#0d0c1f;color:#eef0ff;padding:4px 9px;border-radius:7px;font-size:.68rem;
+        font-weight:600;white-space:nowrap;z-index:15;box-shadow:0 5px 15px rgba(0,0,0,.5);
+        border:1px solid rgba(255,255,255,0.08);
+      }
+      .rq-heat-legend { display:flex;align-items:center;gap:5px;margin-top:10px;font-size:.72rem;color:var(--rq-muted);font-weight:600; }
+      .rq-heat-legend .rq-heat-cell{width:13px;height:13px;flex:none;}
+
+      /* ---- Task sections ---- */
+      .rq-section-title {
+        font-weight:700;font-size:.95rem;text-transform:uppercase;letter-spacing:1px;
+        color:var(--rq-muted);margin:22px 0 10px 3px;display:flex;align-items:center;gap:7px;
+      }
+      .rq-task-list { display:flex;flex-direction:column;gap:9px;min-height:12px; }
+      .rq-task-list.drag-target { outline:2px dashed var(--rq-accent);outline-offset:4px;border-radius:10px; }
+      .rq-task {
+        border-radius:11px;padding:12px 16px;display:flex;align-items:center;gap:10px;
+        cursor:default;user-select:none;
+        background:var(--rq-card);border:1px solid var(--rq-border);
+        transition:transform .2s,background .2s,border-color .2s,box-shadow .2s;
+      }
+      .rq-task:hover { transform:translateY(-2px) scale(1.003);background:rgba(255,255,255,0.06);border-color:var(--rq-accent);box-shadow:0 5px 18px var(--rq-shadow); }
+      .rq-wrap[data-rq-theme="light"] .rq-task:hover { background:rgba(0,0,0,0.02); }
+      .rq-task.dragging { opacity:.35;border:2px dashed var(--rq-accent);box-shadow:none;background:transparent; }
+      .rq-task.done { opacity:.55; }
+      .rq-task.done .rq-task-title { text-decoration:line-through;color:var(--rq-muted); }
+      .rq-drag-handle { flex-shrink:0;cursor:grab;color:var(--rq-muted);font-size:1.05rem;line-height:1;padding:2px 3px;letter-spacing:-2px;touch-action:none;transition:color .2s; }
+      .rq-drag-handle:hover { color:var(--rq-accent); }
+      .rq-drag-handle:active { cursor:grabbing; }
+      .rq-checkbox {
+        width:24px;height:24px;border-radius:50%;border:2px solid var(--rq-accent);
+        display:flex;align-items:center;justify-content:center;flex-shrink:0;
+        transition:all .25s cubic-bezier(0.175,0.885,0.32,1.275);font-size:.85rem;cursor:pointer;
+      }
+      .rq-checkbox:hover { transform:scale(1.1);box-shadow:0 0 7px var(--rq-accent); }
+      .rq-task.done .rq-checkbox { background:var(--rq-green);border-color:var(--rq-green);color:#08340f;box-shadow:0 0 7px var(--rq-green); }
+      .rq-task-title { flex:1;font-size:.95rem;cursor:pointer;font-weight:500;color:var(--rq-text); }
+      .rq-task-meta { display:flex;align-items:center;gap:7px;font-size:.8rem;color:var(--rq-gold);font-weight:700;white-space:nowrap; }
+      .rq-del-btn { background:none;border:none;color:var(--rq-muted);font-size:1.1rem;cursor:pointer;padding:2px 7px;border-radius:6px;transition:all .2s; }
+      .rq-del-btn:hover { color:#ff6b6b;background:rgba(255,107,107,.15); }
+
+      /* ---- Add task ---- */
+      .rq-add-task-row { display:flex;gap:7px;margin-top:9px;flex-wrap:wrap; }
+      .rq-add-task-row input,.rq-add-task-row select {
+        background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.1);
+        color:var(--rq-text);border-radius:9px;padding:10px 12px;
+        font-size:.92rem;font-family:'Outfit',sans-serif;
+        transition:border-color .3s,background .3s;
+      }
+      .rq-add-task-row input:focus,.rq-add-task-row select:focus { outline:none;border-color:var(--rq-accent);background:rgba(0,0,0,.32); }
+      .rq-wrap[data-rq-theme="light"] .rq-add-task-row input,.rq-wrap[data-rq-theme="light"] .rq-add-task-row select { background:rgba(0,0,0,.04); }
+      .rq-add-task-row input[type=text]{flex:1;min-width:160px;}
+      .rq-add-task-row input[type=number]{width:82px;}
+      .rq-add-task-row button {
+        background:linear-gradient(90deg,var(--rq-accent),var(--rq-accent2));border:none;color:#0d0c1f;
+        font-family:'Outfit',sans-serif;font-weight:700;padding:10px 20px;border-radius:9px;cursor:pointer;
+        box-shadow:0 3px 12px var(--rq-shadow);transition:opacity .2s,transform .2s;
+      }
+      .rq-add-task-row button:hover { opacity:.9;transform:translateY(-1px); }
+      .rq-add-task-row button:active { transform:translateY(1px); }
+
+      /* ---- Badges ---- */
+      .rq-badges { display:flex;flex-wrap:wrap;gap:10px;margin-top:9px; }
+      .rq-badge {
+        border-radius:11px;padding:10px 12px;text-align:center;width:82px;
+        opacity:.3;filter:grayscale(1);
+        background:var(--rq-card);border:1px solid var(--rq-border);
+        transition:opacity .35s,transform .3s cubic-bezier(0.175,0.885,0.32,1.275),filter .35s;
+      }
+      .rq-badge.unlocked { opacity:1;filter:none;border-color:rgba(255,209,102,0.4);box-shadow:0 3px 12px rgba(255,209,102,0.15); }
+      .rq-badge.unlocked:hover { transform:scale(1.1) translateY(-3px);border-color:var(--rq-gold);box-shadow:0 7px 18px rgba(255,209,102,0.22); }
+      .rq-badge .rq-badge-icon { font-size:1.8rem; }
+      .rq-badge .rq-badge-name { font-weight:700;font-size:.67rem;color:var(--rq-muted);margin-top:5px;line-height:1.2; }
+
+      /* ---- Footer buttons ---- */
+      .rq-footer-row { display:flex;justify-content:center;gap:10px;margin-top:28px;flex-wrap:wrap; }
+      .rq-reset-btn,.rq-backup-btn {
+        background:none;border:1px solid rgba(255,255,255,.14);color:var(--rq-muted);
+        padding:8px 16px;border-radius:9px;cursor:pointer;font-family:'Outfit',sans-serif;
+        font-weight:600;font-size:.8rem;transition:all .25s;
+      }
+      .rq-reset-btn:hover { border-color:#ff6b6b;color:#ff6b6b;background:rgba(255,107,107,0.05); }
+      .rq-backup-btn:hover { border-color:var(--rq-accent);color:var(--rq-accent);background:rgba(0,224,255,0.05); }
+
+      /* ---- Toast ---- */
+      #rq-toast {
+        position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+        background:linear-gradient(90deg,var(--rq-accent),var(--rq-accent2));color:#0d0c1f;
+        font-family:'Outfit',sans-serif;font-weight:800;padding:12px 22px;border-radius:12px;
+        box-shadow:0 7px 26px rgba(0,0,0,.4);opacity:0;
+        transition:opacity .3s,transform .3s cubic-bezier(0.175,0.885,0.32,1.275);
+        pointer-events:none;z-index:999;font-size:.92rem;letter-spacing:0.5px;
+      }
+      #rq-toast.show { opacity:1;transform:translateX(-50%) translateY(0); }
+
+      /* ---- Sparkle particle ---- */
+      .rq-sparkle-particle { position:fixed;border-radius:50%;pointer-events:none;z-index:1000; }
+
+      @media(max-width:480px){
+        .rq-hero-header h2{font-size:1.6rem;}
+        .rq-stats-mini{width:100%;justify-content:space-between;}
+        .rq-heatmap{grid-template-columns:repeat(10,1fr);}
+        .rq-theme-dropdown{width:220px;}
+        .rq-xp-float-text,.rq-xp-float-streak{display:none;}
+      }
+    </style>
+</head>
+
+<body>
+    <div class="app-container tool-view active">
+
+        <!-- Header PocketTools -->
+        <div class="tool-header">
+            <a href="index.html" class="back-btn" aria-label="Volver">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h2 class="tool-title" style="flex:1;">RutinaQuest</h2>
+            <button id="theme-toggle" class="secondary-btn" aria-label="Cambiar Tema"
+                style="padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+
+        <!-- RutinaQuest content wrapper -->
+        <div id="tool-content" style="flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+        <div class="rq-wrap" id="rqWrap" data-rq-theme="neon">
+
+            <!-- Ambient orbs -->
+            <div class="rq-orb rq-orb1"></div>
+            <div class="rq-orb rq-orb2"></div>
+            <div class="rq-orb rq-orb3"></div>
+
+            <!-- Level up overlay -->
+            <div class="rq-levelup-overlay" id="rqLevelUpOverlay">
+                <div class="rq-levelup-content">
+                    <div class="rq-levelup-title">⚡ ¡SUBISTE DE NIVEL! ⚡</div>
+                    <div class="rq-levelup-number" id="rqLevelUpNumber">Nivel 1</div>
+                    <div class="rq-levelup-sub">Tu poder y rango de armadura han aumentado</div>
+                </div>
+            </div>
+
+            <!-- Floating XP bar -->
+            <div class="rq-xp-float" id="rqXpFloat">
+                <div class="rq-xp-float-inner">
+                    <span class="rq-xp-float-avatar" id="rqXpFloatAvatar">🧙</span>
+                    <span class="rq-xp-float-level" id="rqXpFloatLevel">Nivel 1</span>
+                    <div class="rq-xp-float-bar-outer">
+                        <div class="rq-xp-float-bar-inner" id="rqXpFloatBarInner"></div>
+                    </div>
+                    <span class="rq-xp-float-text" id="rqXpFloatText">0 XP</span>
+                    <span class="rq-xp-float-streak" id="rqXpFloatStreak">🔥 0</span>
+                </div>
+            </div>
+
+            <!-- Hero header -->
+            <div class="rq-hero-header">
+                <h2>⚔️ RutinaQuest</h2>
+                <p>Convierte tu rutina diaria en una misión que subes de nivel</p>
+            </div>
+
+            <!-- Theme picker (interno de RutinaQuest) -->
+            <div class="rq-theme-picker">
+                <button class="rq-theme-picker-btn" id="rqThemePickerBtn">
+                    <span class="rq-theme-swatch-mini"></span>
+                    <span id="rqThemePickerLabel">Tema</span>
+                    <span>▾</span>
+                </button>
+                <div class="rq-theme-dropdown" id="rqThemeDropdown"></div>
+            </div>
+
+            <div class="rq-container">
+
+                <!-- Player card -->
+                <div class="rq-card rq-player-card" id="rqPlayerCard">
+                    <div class="rq-avatar" id="rqAvatar">🧙</div>
+                    <div class="rq-player-info">
+                        <div class="rq-name-row">
+                            <h3>Tu progreso</h3>
+                            <span class="rq-level-badge" id="rqLevelBadge">Nivel 1</span>
+                        </div>
+                        <div class="rq-xp-bar-outer">
+                            <div class="rq-xp-bar-inner" id="rqXpBarInner"></div>
+                        </div>
+                        <div class="rq-xp-text">
+                            <span id="rqXpCurrentText">0 XP</span>
+                            <span id="rqXpNextText">100 XP para nivel 2</span>
+                        </div>
+                    </div>
+                    <div class="rq-stats-mini">
+                        <div class="rq-stat-box"><div class="rq-val" id="rqStreakVal">0</div><div class="rq-lbl">Racha 🔥</div></div>
+                        <div class="rq-stat-box"><div class="rq-val" id="rqTotalXpVal">0</div><div class="rq-lbl">XP total</div></div>
+                        <div class="rq-stat-box"><div class="rq-val" id="rqBestStreakVal">0</div><div class="rq-lbl">Récord</div></div>
+                    </div>
+                </div>
+
+                <!-- Today progress -->
+                <div class="rq-card rq-today-card" id="rqTodayProgressCard">
+                    <h3>Progreso de hoy</h3>
+                    <div class="rq-ring-row">
+                        <div class="rq-ring-svg-container">
+                            <svg class="rq-ring-svg" width="68" height="68">
+                                <circle cx="34" cy="34" r="28" fill="transparent" stroke="rgba(255,255,255,0.06)" stroke-width="6"/>
+                                <circle class="rq-ring-active" id="rqProgressRingCircle" cx="34" cy="34" r="28" fill="transparent" stroke="var(--rq-green)" stroke-width="6" stroke-linecap="round" stroke-dasharray="175.9" stroke-dashoffset="175.9"/>
+                            </svg>
+                            <div class="rq-ring-pct" id="rqRingPct">0%</div>
+                        </div>
+                        <div class="rq-ring-msg" id="rqRingMsg">Aún no marcaste ninguna tarea. ¡Empieza!</div>
+                    </div>
+                </div>
+
+                <!-- Warrior visual -->
+                <div class="rq-card rq-warrior-card" id="rqWarriorCard">
+                    <h3>Tu guerrero</h3>
+                    <div class="rq-warrior-sub">Se va equipando a medida que completas tu rutina de hoy. Su rango mejora para siempre con tu nivel.</div>
+                    <div class="rq-warrior-layout">
+                        <div class="rq-warrior-stage">
+                            <svg viewBox="0 0 200 260">
+                                <defs>
+                                    <linearGradient id="rqLegendaryGrad" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0%" stop-color="var(--rq-accent)"/>
+                                        <stop offset="100%" stop-color="var(--rq-accent2)"/>
+                                    </linearGradient>
+                                    <radialGradient id="rqAuraGrad" cx="50%" cy="45%" r="55%">
+                                        <stop offset="0%" stop-color="var(--rq-armor-trim)" stop-opacity="0.55"/>
+                                        <stop offset="100%" stop-color="var(--rq-armor-trim)" stop-opacity="0"/>
+                                    </radialGradient>
+                                    <filter id="rqAnimeGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                        <feGaussianBlur stdDeviation="4" result="blur"/>
+                                        <feComponentTransfer in="blur" result="glow"><feFuncA type="linear" slope="0.8"/></feComponentTransfer>
+                                        <feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge>
+                                    </filter>
+                                </defs>
+                                <g id="rq-piece-aura" class="rq-armor-piece">
+                                    <circle cx="100" cy="120" r="95" fill="url(#rqAuraGrad)"/>
+                                    <circle cx="100" cy="120" r="88" fill="none" stroke="var(--rq-armor-trim)" stroke-width="1.5" stroke-dasharray="20 15 40 10" stroke-opacity="0.3"><animateTransform attributeName="transform" type="rotate" from="0 100 120" to="360 100 120" dur="20s" repeatCount="indefinite"/></circle>
+                                    <circle cx="100" cy="120" r="82" fill="none" stroke="var(--rq-armor-main)" stroke-width="1" stroke-dasharray="10 30" stroke-opacity="0.25"><animateTransform attributeName="transform" type="rotate" from="360 100 120" to="0 100 120" dur="15s" repeatCount="indefinite"/></circle>
+                                    <circle class="rq-sparkle" cx="35" cy="60" r="3.5" fill="var(--rq-gold)" filter="url(#rqAnimeGlow)"/>
+                                    <circle class="rq-sparkle" cx="165" cy="80" r="2.5" fill="var(--rq-accent2)" filter="url(#rqAnimeGlow)"/>
+                                    <circle class="rq-sparkle" cx="150" cy="200" r="3.5" fill="var(--rq-gold)" filter="url(#rqAnimeGlow)"/>
+                                    <circle class="rq-sparkle" cx="45" cy="195" r="2.5" fill="var(--rq-accent)" filter="url(#rqAnimeGlow)"/>
+                                    <circle class="rq-sparkle" cx="100" cy="25" r="3" fill="var(--rq-accent)" filter="url(#rqAnimeGlow)"/>
+                                </g>
+                                <g id="rq-piece-cape" class="rq-armor-piece">
+                                    <path d="M76,90 C50,110 32,170 50,230 L74,218 C64,170 70,120 86,96 Z" class="rq-armor-dark"/>
+                                    <path d="M76,90 C50,110 32,170 50,230" fill="none" stroke="var(--rq-armor-main)" stroke-width="2"/>
+                                    <path d="M124,90 C150,110 168,170 150,230 L126,218 C136,170 130,120 114,96 Z" class="rq-armor-dark"/>
+                                    <path d="M124,90 C150,110 168,170 150,230" fill="none" stroke="var(--rq-armor-main)" stroke-width="2"/>
+                                </g>
+                                <g id="rqBodyBase">
+                                    <rect x="80" y="150" width="16" height="52" rx="4" fill="#1b1836"/>
+                                    <rect x="104" y="150" width="16" height="52" rx="4" fill="#1b1836"/>
+                                    <path d="M78,202 L98,202 L96,215 L76,215 Z" fill="#110e24"/>
+                                    <path d="M102,202 L122,202 L124,215 L104,215 Z" fill="#110e24"/>
+                                    <rect x="58" y="90" width="16" height="42" rx="8" fill="#f2c9a0" transform="rotate(10 66 110)"/>
+                                    <rect x="126" y="90" width="16" height="42" rx="8" fill="#f2c9a0" transform="rotate(-10 134 110)"/>
+                                    <rect x="74" y="84" width="52" height="68" rx="12" fill="#2d294a"/>
+                                    <circle cx="100" cy="55" r="26" fill="#f2c9a0"/>
+                                    <circle cx="91" cy="53" r="2.6" fill="#2a2540"/>
+                                    <circle cx="109" cy="53" r="2.6" fill="#2a2540"/>
+                                    <path d="M92,64 Q100,69 108,64" stroke="#8a5a3a" stroke-width="2" fill="none" stroke-linecap="round"/>
+                                </g>
+                                <g id="rq-piece-boots" class="rq-armor-piece">
+                                    <path d="M75,172 L99,172 L97,215 L73,215 Z" class="rq-armor-main"/>
+                                    <path d="M75,172 L99,172 L98,182 L76,182 Z" class="rq-armor-trim"/>
+                                    <path d="M73,205 L97,205 L96,215 L71,215 Z" class="rq-armor-dark"/>
+                                    <circle cx="87" cy="195" r="2.5" class="rq-armor-trim"/>
+                                    <path d="M101,172 L125,172 L127,215 L103,215 Z" class="rq-armor-main"/>
+                                    <path d="M101,172 L125,172 L124,182 L102,182 Z" class="rq-armor-trim"/>
+                                    <path d="M103,205 L127,205 L129,215 L104,215 Z" class="rq-armor-dark"/>
+                                    <circle cx="113" cy="195" r="2.5" class="rq-armor-trim"/>
+                                </g>
+                                <g id="rq-piece-gauntlets" class="rq-armor-piece">
+                                    <g transform="rotate(10 63 123)">
+                                        <rect x="52" y="106" width="22" height="34" rx="6" class="rq-armor-main"/>
+                                        <rect x="52" y="106" width="22" height="8" rx="2" class="rq-armor-trim"/>
+                                        <circle cx="63" cy="125" r="2" class="rq-armor-dark"/>
+                                        <path d="M30,95 L50,85 L54,120 L30,135 Z" class="rq-armor-dark" transform="translate(10, 0)"/>
+                                        <path d="M30,95 L50,85 L54,120 L30,135 Z" fill="none" stroke="var(--rq-armor-trim)" stroke-width="1.5" transform="translate(10, 0)"/>
+                                        <circle cx="42" cy="110" r="2" fill="var(--rq-gold)" transform="translate(10, 0)"/>
+                                    </g>
+                                    <g transform="rotate(-10 137 123)">
+                                        <rect x="126" y="106" width="22" height="34" rx="6" class="rq-armor-main"/>
+                                        <rect x="126" y="106" width="22" height="8" rx="2" class="rq-armor-trim"/>
+                                        <circle cx="137" cy="125" r="2" class="rq-armor-dark"/>
+                                    </g>
+                                </g>
+                                <g id="rq-piece-chest" class="rq-armor-piece">
+                                    <path d="M70,82 C70,72 82,66 100,66 C118,66 130,72 130,82 L130,144 C130,154 116,158 100,158 C84,158 70,154 70,144 Z" class="rq-armor-main"/>
+                                    <path d="M76,120 L124,120 L122,142 C122,148 112,152 100,152 C88,152 78,148 78,142 Z" class="rq-armor-dark"/>
+                                    <line x1="84" y1="130" x2="116" y2="130" stroke="var(--rq-armor-main)" stroke-width="2"/>
+                                    <line x1="86" y1="138" x2="114" y2="138" stroke="var(--rq-armor-main)" stroke-width="2"/>
+                                    <path d="M100,72 L100,116" stroke="var(--rq-armor-trim)" stroke-width="3" stroke-linecap="round"/>
+                                    <circle cx="100" cy="94" r="9" class="rq-armor-dark"/>
+                                    <circle cx="100" cy="94" r="6" fill="var(--rq-accent)" filter="url(#rqAnimeGlow)"/>
+                                    <circle cx="100" cy="94" r="2.5" fill="#fff"/>
+                                </g>
+                                <g id="rq-piece-pauldrons" class="rq-armor-piece">
+                                    <path d="M54,84 C54,72 72,72 76,84 L72,102 C68,102 54,96 54,84 Z" class="rq-armor-dark" transform="rotate(10 65 90)"/>
+                                    <path d="M54,84 C54,72 72,72 76,84" fill="none" stroke="var(--rq-armor-trim)" stroke-width="2" transform="rotate(10 65 90)"/>
+                                    <path d="M146,84 C146,72 128,72 124,84 L128,102 C132,102 146,96 146,84 Z" class="rq-armor-dark" transform="rotate(-10 135 90)"/>
+                                    <path d="M146,84 C146,72 128,72 124,84" fill="none" stroke="var(--rq-armor-trim)" stroke-width="2" transform="rotate(-10 135 90)"/>
+                                </g>
+                                <g id="rq-piece-helmet" class="rq-armor-piece">
+                                    <path d="M68,52 C68,28 82,14 100,14 C118,14 132,28 132,52 L132,62 C132,68 124,72 118,72 L82,72 C76,72 68,68 68,62 Z" class="rq-armor-main"/>
+                                    <path d="M72,38 L128,38 L124,56 L76,56 Z" class="rq-armor-dark"/>
+                                    <rect x="80" y="44" width="40" height="6" rx="2" fill="var(--rq-accent2)" filter="url(#rqAnimeGlow)"/>
+                                    <path d="M80,56 L120,56 L112,68 L88,68 Z" class="rq-armor-trim"/>
+                                    <line x1="100" y1="56" x2="100" y2="68" stroke="var(--rq-armor-main)" stroke-width="2"/>
+                                </g>
+                                <g id="rq-piece-plume" class="rq-armor-piece">
+                                    <path d="M100,14 C92,2 108,-10 116,4 C120,12 108,18 100,14 Z" class="rq-armor-trim"/>
+                                    <path d="M100,14 C96,6 106,-4 110,6" fill="none" stroke="var(--rq-armor-main)" stroke-width="1.5"/>
+                                </g>
+                                <g id="rq-piece-crown" class="rq-armor-piece">
+                                    <path d="M72,22 L82,4 L92,18 L100,2 L108,18 L118,4 L128,22 Z" fill="var(--rq-gold)" filter="url(#rqAnimeGlow)"/>
+                                    <circle cx="82" cy="4" r="2.5" fill="var(--rq-accent2)"/>
+                                    <circle cx="100" cy="2" r="3" fill="var(--rq-accent)"/>
+                                    <circle cx="118" cy="4" r="2.5" fill="var(--rq-accent2)"/>
+                                    <circle cx="100" cy="14" r="2.5" fill="var(--rq-accent)"/>
+                                </g>
+                                <g id="rq-piece-weapon" class="rq-armor-piece">
+                                    <g transform="rotate(18 144 130)">
+                                        <rect x="141" y="132" width="6" height="28" rx="2" fill="#524e75"/>
+                                        <circle cx="144" cy="160" r="4.5" class="rq-armor-trim"/>
+                                        <path d="M132,130 L156,130 L152,135 L136,135 Z" fill="var(--rq-gold)"/>
+                                        <circle cx="144" cy="132.5" r="2" fill="var(--rq-accent2)"/>
+                                        <path d="M139,45 L149,45 L147,130 L141,130 Z" fill="#d1d5db"/>
+                                        <path d="M141,35 L147,35 L146,130 L142,130 Z" fill="var(--rq-accent)" filter="url(#rqAnimeGlow)"/>
+                                        <path d="M143,45 L145,45 L145,128 L143,128 Z" fill="#fff"/>
+                                    </g>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="rq-warrior-info">
+                            <div class="rq-armor-tier-name" id="rqArmorTierName">Recluta</div>
+                            <div class="rq-armor-next-hint" id="rqArmorNextHint">Sigue subiendo de nivel para mejorar tu armadura</div>
+                            <div class="rq-gear-checklist" id="rqGearChecklist"></div>
+                            <div class="rq-gear-count" id="rqGearCount">0/5 piezas puestas hoy</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History / charts -->
+                <div class="rq-card rq-history-card">
+                    <h3>Historial de constancia</h3>
+                    <div class="rq-history-sub">Elige cómo visualizar tu progreso — guardado automáticamente en este navegador</div>
+                    <div class="rq-chart-tabs" id="rqChartTabs">
+                        <button class="rq-chart-tab-btn" data-chart="heatmap">🗓️ Mapa de calor</button>
+                        <button class="rq-chart-tab-btn" data-chart="bar">📊 Barras</button>
+                        <button class="rq-chart-tab-btn" data-chart="scatter">🔵 Dispersión</button>
+                        <button class="rq-chart-tab-btn" data-chart="line">📈 Función X,Y</button>
+                    </div>
+                    <div class="rq-chart-view" data-view="heatmap" id="rqViewHeatmap">
+                        <span class="rq-anime-tag">⚡ Modo shonen</span>
+                        <div class="rq-heatmap" id="rqHeatmap"></div>
+                        <div class="rq-heat-legend">
+                            Menos
+                            <div class="rq-heat-cell" data-lvl="0"></div>
+                            <div class="rq-heat-cell" data-lvl="1"></div>
+                            <div class="rq-heat-cell" data-lvl="2"></div>
+                            <div class="rq-heat-cell" data-lvl="3"></div>
+                            <div class="rq-heat-cell" data-lvl="4"></div>
+                            Más
+                        </div>
+                        <div class="rq-chart-desc">Últimos 45 días. Los días perfectos (100%) brillan con aura y una estrella ★.</div>
+                    </div>
+                    <div class="rq-chart-view" data-view="bar" id="rqViewBar">
+                        <span class="rq-anime-tag">💥 Modo impacto</span>
+                        <svg class="rq-chart-svg" id="rqBarSvg" viewBox="0 0 600 220" preserveAspectRatio="none"></svg>
+                        <div class="rq-chart-desc">% de tareas completadas por día — últimos 30 días.</div>
+                    </div>
+                    <div class="rq-chart-view" data-view="scatter" id="rqViewScatter">
+                        <span class="rq-anime-tag">🌟 Modo estelar</span>
+                        <svg class="rq-chart-svg" id="rqScatterSvg" viewBox="0 0 600 220" preserveAspectRatio="none"></svg>
+                        <div class="rq-chart-desc">Cada estrella es un día: eje X = % completado, eje Y = XP ganado.</div>
+                    </div>
+                    <div class="rq-chart-view" data-view="line" id="rqViewLine">
+                        <span class="rq-anime-tag">🐉 Modo dragón</span>
+                        <svg class="rq-chart-svg" id="rqLineSvg" viewBox="0 0 600 220" preserveAspectRatio="none"></svg>
+                        <div class="rq-chart-desc">Curva de XP acumulado con aura de energía.</div>
+                    </div>
+                </div>
+
+                <!-- Morning -->
+                <div class="rq-section-title">🌅 Mañana</div>
+                <div class="rq-task-list" id="rqListMorning" data-period="morning"></div>
+
+                <!-- Afternoon -->
+                <div class="rq-section-title">☀️ Tarde</div>
+                <div class="rq-task-list" id="rqListAfternoon" data-period="afternoon"></div>
+
+                <!-- Night -->
+                <div class="rq-section-title">🌙 Noche</div>
+                <div class="rq-task-list" id="rqListNight" data-period="night"></div>
+
+                <!-- Add task -->
+                <div class="rq-section-title">➕ Agregar tarea personalizada</div>
+                <div class="rq-add-task-row">
+                    <input type="text" id="rqNewTaskTitle" placeholder="Ej: Leer 10 páginas">
+                    <select id="rqNewTaskPeriod">
+                        <option value="morning">Mañana</option>
+                        <option value="afternoon">Tarde</option>
+                        <option value="night">Noche</option>
+                    </select>
+                    <input type="number" id="rqNewTaskXp" placeholder="XP" value="10" min="1" max="100" inputmode="numeric">
+                    <button onclick="rqAddTask()">Añadir</button>
+                </div>
+
+                <!-- Badges -->
+                <div class="rq-section-title">🏆 Logros</div>
+                <div class="rq-badges" id="rqBadgesRow"></div>
+
+                <div class="rq-footer-row">
+                    <button class="rq-backup-btn" onclick="rqExportData()">Exportar respaldo (.json)</button>
+                    <button class="rq-backup-btn" onclick="document.getElementById('rqImportFile').click()">Importar respaldo</button>
+                    <input type="file" id="rqImportFile" accept="application/json" style="display:none" onchange="rqImportData(event)">
+                    <button class="rq-reset-btn" onclick="rqResetAll()">Reiniciar todo el progreso</button>
+                </div>
+
+            </div><!-- /.rq-container -->
+        </div><!-- /.rq-wrap -->
+        </div><!-- /#tool-content -->
+
+    </div><!-- /.app-container -->
+
+    <div id="rq-toast"></div>
+
+    <script>
+        // === Theme System (PocketTools) ===
+        const TOOL_ID = 'rutina';
+        const themeBtn = document.getElementById('theme-toggle');
+
+        function loadTheme() {
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            applyTheme(saved[TOOL_ID] || 'dark');
+        }
+
+        function toggleTheme() {
+            const list = ['dark', 'light', 'matrix', 'kids', 'cyberpunk', 'nordic', 'forest'];
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            let current = saved[TOOL_ID] || 'dark';
+            let idx = list.indexOf(current);
+            if (idx === -1) idx = 0;
+            const next = list[(idx + 1) % list.length];
+            saved[TOOL_ID] = next;
+            localStorage.setItem('pt_tool_themes', JSON.stringify(saved));
+            applyTheme(next);
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') document.documentElement.removeAttribute('data-theme');
+            else document.documentElement.setAttribute('data-theme', theme);
+            updateThemeIcon(theme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = themeBtn.querySelector('i');
+            icon.className = ''; icon.style.color = '';
+            switch (theme) {
+                case 'light': icon.className = 'fa-solid fa-sun'; icon.style.color = '#f59e0b'; break;
+                case 'matrix': icon.className = 'fa-solid fa-terminal'; icon.style.color = '#00ff41'; break;
+                case 'kids': icon.className = 'fa-solid fa-shapes'; icon.style.color = '#ef4444'; break;
+                case 'cyberpunk': icon.className = 'fa-solid fa-robot'; icon.style.color = '#00ffff'; break;
+                case 'nordic': icon.className = 'fa-regular fa-snowflake'; icon.style.color = '#88c0d0'; break;
+                case 'forest': icon.className = 'fa-solid fa-tree'; icon.style.color = '#95d5b2'; break;
+                default: icon.className = 'fa-solid fa-moon'; break;
+            }
+        }
+
+        themeBtn.addEventListener('click', toggleTheme);
+        loadTheme();
+
+        // === Tool Logic — RutinaQuest ===
+        const RQ_STORAGE_KEY = 'pt_rutina_data';
+        const RQ_CHART_PREF  = 'pt_rutina_chart_pref';
+        const RQ_THEME_PREF  = 'pt_rutina_theme_pref';
+
+        const rqDefaultTasks = [
+            {id:'m1', period:'morning',  title:'Hacer la cama',                        xp:5},
+            {id:'m2', period:'morning',  title:'Beber un vaso de agua',                xp:5},
+            {id:'m3', period:'morning',  title:'10 min de estiramiento / ejercicio',   xp:15},
+            {id:'m4', period:'morning',  title:'Planificar las 3 tareas más importantes', xp:15},
+            {id:'a1', period:'afternoon',title:'Bloque de trabajo enfocado (Pomodoro)',xp:20},
+            {id:'a2', period:'afternoon',title:'Almuerzo saludable',                   xp:10},
+            {id:'a3', period:'afternoon',title:'Caminar 15 minutos',                   xp:10},
+            {id:'n1', period:'night',    title:'Revisar el día y anotar aprendizajes', xp:10},
+            {id:'n2', period:'night',    title:'Sin pantallas 30 min antes de dormir', xp:15},
+            {id:'n3', period:'night',    title:'Dormir antes de las 23:30',            xp:20},
+        ];
+
+        const rqBadgeDefs = [
+            {id:'b1', icon:'🔥', name:'3 días',     check: s => s.bestStreak >= 3},
+            {id:'b2', icon:'⚡', name:'7 días',     check: s => s.bestStreak >= 7},
+            {id:'b3', icon:'🌟', name:'30 días',    check: s => s.bestStreak >= 30},
+            {id:'b4', icon:'💯', name:'Día perfecto',check: s => s.perfectDays >= 1},
+            {id:'b5', icon:'🏅', name:'5 perfectos', check: s => s.perfectDays >= 5},
+            {id:'b6', icon:'🚀', name:'Nivel 5',    check: s => s.level >= 5},
+            {id:'b7', icon:'👑', name:'Nivel 10',   check: s => s.level >= 10},
+            {id:'b8', icon:'📚', name:'500 XP',     check: s => s.totalXp >= 500},
+        ];
+
+        const rqThemeDefs = [
+            {id:'neon',   name:'Neón',       swatch:'linear-gradient(135deg,#00e0ff,#ff2fb0)'},
+            {id:'rpg',    name:'RPG dorado', swatch:'linear-gradient(135deg,#ffb703,#e85d04)'},
+            {id:'forest', name:'Bosque',     swatch:'linear-gradient(135deg,#3ddc97,#7bd389)'},
+            {id:'sunset', name:'Atardecer',  swatch:'linear-gradient(135deg,#ff6b6b,#ffa62b)'},
+            {id:'ocean',  name:'Océano',     swatch:'linear-gradient(135deg,#48cae4,#0096c7)'},
+            {id:'light',  name:'Claro',      swatch:'linear-gradient(135deg,#5b5fef,#e8489a)'},
+        ];
+
+        const rqArmorTierDefs = [
+            {id:0, minLevel:1,  name:'Recluta',    main:'#7d7d8a', dark:'#52525c', trim:'#a8a8b5'},
+            {id:1, minLevel:3,  name:'Bronce',     main:'#b5651d', dark:'#7a4315', trim:'#e0a458'},
+            {id:2, minLevel:6,  name:'Plata',      main:'#c9ccd6', dark:'#8b8fa0', trim:'#eef0f5'},
+            {id:3, minLevel:9,  name:'Oro',        main:'#f2b705', dark:'#b3820a', trim:'#ffe066'},
+            {id:4, minLevel:12, name:'Legendario', main:'url(#rqLegendaryGrad)', dark:'#3a2a55', trim:'#ffe066'},
+        ];
+
+        let rqCurrentLevel = 1;
+
+        function rqFmtDate(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+        function rqTodayStr(){ return rqFmtDate(new Date()); }
+
+        function rqIsYesterday(dateStr, todayVal){
+            if(!dateStr) return false;
+            const diff = (new Date(todayVal) - new Date(dateStr)) / (1000*60*60*24);
+            return Math.round(diff) === 1;
+        }
+
+        function rqAllDoneCheck(s){ const ids=s.tasks.map(t=>t.id); return ids.length>0 && ids.every(id=>s.completedToday[id]); }
+        function rqPctForDay(s){ const ids=s.tasks.map(t=>t.id); if(!ids.length) return 0; return Math.round((ids.filter(id=>s.completedToday[id]).length/ids.length)*100); }
+        function rqXpForDay(s){ return s.tasks.reduce((sum,t)=>s.completedToday[t.id]?sum+t.xp:sum,0); }
+
+        function rqLoadState(){
+            let raw = localStorage.getItem(RQ_STORAGE_KEY);
+            let s;
+            if(raw){
+                s = JSON.parse(raw);
+                if(!s.history) s.history={};
+                if(!s.historyXp) s.historyXp={};
+                if(s.lastArmorTier===undefined) s.lastArmorTier=0;
+            } else {
+                s = { tasks:rqDefaultTasks, totalXp:0, streak:0, bestStreak:0, perfectDays:0,
+                      lastCheckedDate:rqTodayStr(), completedToday:{}, unlockedBadges:[], history:{}, historyXp:{}, lastArmorTier:0 };
+            }
+            const t = rqTodayStr();
+            if(s.lastCheckedDate !== t){
+                const yk = s.lastCheckedDate;
+                if(yk){ s.history[yk]=rqPctForDay(s); s.historyXp[yk]=rqXpForDay(s); }
+                if(rqAllDoneCheck(s) && rqIsYesterday(s.lastCheckedDate, t)) s.streak++;
+                else s.streak=0;
+                if(s.streak>s.bestStreak) s.bestStreak=s.streak;
+                s.completedToday={};
+                s.lastCheckedDate=t;
+            }
+            rqCurrentLevel = rqLevelFromXp(s.totalXp);
+            return s;
+        }
+
+        function rqSaveState(){
+            rqState.history[rqTodayStr()]=rqPctForDay(rqState);
+            rqState.historyXp[rqTodayStr()]=rqXpForDay(rqState);
+            localStorage.setItem(RQ_STORAGE_KEY, JSON.stringify(rqState));
+        }
+
+        function rqXpForLevel(level){ return 100*level*level; }
+        function rqLevelFromXp(xp){ let l=1; while(xp>=rqXpForLevel(l)) l++; return l; }
+        function rqGetArmorTier(level){ let t=rqArmorTierDefs[0]; rqArmorTierDefs.forEach(d=>{if(level>=d.minLevel)t=d;}); return t; }
+
+        function rqShowToast(msg){
+            const el = document.getElementById('rq-toast');
+            el.textContent=msg; el.classList.add('show');
+            clearTimeout(window._rqToastTimer);
+            window._rqToastTimer = setTimeout(()=>el.classList.remove('show'),2200);
+        }
+
+        function rqTriggerParticles(element){
+            const rect=element.getBoundingClientRect();
+            const x=rect.left+rect.width/2; const y=rect.top+rect.height/2;
+            const colors=['var(--rq-accent)','var(--rq-accent2)','var(--rq-gold)','var(--rq-green)','#fff'];
+            for(let i=0;i<18;i++){
+                const p=document.createElement('div'); p.className='rq-sparkle-particle';
+                document.body.appendChild(p);
+                const sz=Math.random()*6+4; const col=colors[Math.floor(Math.random()*colors.length)];
+                p.style.cssText=`width:${sz}px;height:${sz}px;background:${col};left:${x}px;top:${y}px;box-shadow:0 0 8px ${col};`;
+                const angle=Math.random()*Math.PI*2; const spd=Math.random()*4+2;
+                let vx=Math.cos(angle)*spd, vy=Math.sin(angle)*spd-Math.random()*2, op=1, px=x, py=y;
+                (function upd(){ px+=vx; py+=vy+0.1; op-=0.022; p.style.left=px+'px'; p.style.top=py+'px'; p.style.opacity=op; if(op>0)requestAnimationFrame(upd); else p.remove(); })();
+            }
+        }
+
+        function rqTriggerLevelUp(level){
+            const ov=document.getElementById('rqLevelUpOverlay'); if(!ov) return;
+            document.getElementById('rqLevelUpNumber').textContent='Nivel '+level;
+            ov.classList.add('show');
+            const colors=['#ffd166','#ff9a3c','#fff','#ff2fb0'];
+            for(let i=0;i<40;i++){
+                setTimeout(()=>{
+                    const p=document.createElement('div'); p.className='rq-sparkle-particle';
+                    document.body.appendChild(p);
+                    const sz=Math.random()*8+4; const col=colors[Math.floor(Math.random()*colors.length)];
+                    const px=Math.random()*window.innerWidth; const py=Math.random()*(window.innerHeight*0.4);
+                    p.style.cssText=`width:${sz}px;height:${sz}px;background:${col};left:${px}px;top:${py}px;box-shadow:0 0 10px ${col};z-index:1200;`;
+                    const angle=Math.random()*Math.PI*2; const spd=Math.random()*4+1;
+                    let vx=Math.cos(angle)*spd, vy=Math.sin(angle)*spd-1, op=1, ox=px, oy=py;
+                    (function upd(){ ox+=vx; oy+=vy+0.08; op-=0.016; p.style.left=ox+'px'; p.style.top=oy+'px'; p.style.opacity=op; if(op>0)requestAnimationFrame(upd); else p.remove(); })();
+                }, i*25);
+            }
+            setTimeout(()=>ov.classList.remove('show'),3200);
+        }
+
+        function rqTriggerPerfectDay(){
+            const colors=['var(--rq-accent)','var(--rq-accent2)','var(--rq-gold)','var(--rq-green)','#fff'];
+            [[-45,0,window.innerHeight],[-135,window.innerWidth,window.innerHeight]].forEach(([angle,sx,sy])=>{
+                const ba=(angle*Math.PI)/180;
+                for(let i=0;i<35;i++){
+                    setTimeout(()=>{
+                        const p=document.createElement('div'); p.className='rq-sparkle-particle'; document.body.appendChild(p);
+                        const sz=Math.random()*7+4; const col=colors[Math.floor(Math.random()*colors.length)];
+                        p.style.cssText=`width:${sz}px;height:${sz}px;background:${col};left:${sx}px;top:${sy}px;box-shadow:0 0 8px ${col};z-index:1000;`;
+                        const a=ba+(Math.random()*0.4-0.2); const spd=Math.random()*10+7;
+                        let vx=Math.cos(a)*spd, vy=Math.sin(a)*spd, op=1, ox=sx, oy=sy;
+                        (function upd(){ ox+=vx; oy+=vy+0.15; op-=0.016; p.style.left=ox+'px'; p.style.top=oy+'px'; p.style.opacity=op; if(op>0)requestAnimationFrame(upd); else p.remove(); })();
+                    }, i*15);
+                }
+            });
+        }
+
+        function rqToggleTask(id, e){
+            const task=rqState.tasks.find(t=>t.id===id); if(!task) return;
+            const wasDone=!!rqState.completedToday[id]; let xpGained=false;
+            if(wasDone){ delete rqState.completedToday[id]; rqState.totalXp=Math.max(0,rqState.totalXp-task.xp); }
+            else{
+                rqState.completedToday[id]=true; rqState.totalXp+=task.xp; xpGained=true;
+                rqShowToast('+'+task.xp+' XP — ¡Bien hecho!');
+                if(e){ const el=e.target.closest('.rq-checkbox')||e.target; rqTriggerParticles(el); }
+                if(rqAllDoneCheck(rqState)){ rqState.perfectDays++; rqShowToast('🎉 ¡Día perfecto! +25 XP'); rqState.totalXp+=25; rqTriggerPerfectDay(); }
+            }
+            const newLevel=rqLevelFromXp(rqState.totalXp);
+            if(newLevel>rqCurrentLevel){ rqTriggerLevelUp(newLevel); rqCurrentLevel=newLevel; } else { rqCurrentLevel=newLevel; }
+            rqCheckBadges(); rqSaveState(); rqRenderAll(); if(xpGained) rqPulseXpBars();
+        }
+
+        function rqPulseXpBars(){
+            [document.getElementById('rqXpBarInner'),document.getElementById('rqXpFloatBarInner')].forEach(el=>{
+                if(!el) return; el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse');
+            });
+        }
+
+        function rqDeleteTask(id){ rqState.tasks=rqState.tasks.filter(t=>t.id!==id); delete rqState.completedToday[id]; rqSaveState(); rqRenderAll(); }
+
+        function rqAddTask(){
+            const title=document.getElementById('rqNewTaskTitle').value.trim();
+            const period=document.getElementById('rqNewTaskPeriod').value;
+            let xp=parseInt(document.getElementById('rqNewTaskXp').value,10);
+            if(!title){ rqShowToast('Escribe un nombre para la tarea'); return; }
+            if(!xp||xp<1) xp=10;
+            rqState.tasks.push({id:'t_'+Date.now(), period, title, xp});
+            document.getElementById('rqNewTaskTitle').value='';
+            rqSaveState(); rqRenderAll();
+        }
+
+        function rqCheckBadges(){
+            const level=rqLevelFromXp(rqState.totalXp);
+            const snap={bestStreak:rqState.bestStreak,perfectDays:rqState.perfectDays,level,totalXp:rqState.totalXp};
+            rqBadgeDefs.forEach(b=>{ if(!rqState.unlockedBadges.includes(b.id)&&b.check(snap)){ rqState.unlockedBadges.push(b.id); rqShowToast('🏆 Logro desbloqueado: '+b.name); } });
+        }
+
+        function rqRenderPlayer(){
+            const level=rqLevelFromXp(rqState.totalXp);
+            const base=rqXpForLevel(level-1), next=rqXpForLevel(level);
+            const pct=Math.min(100,Math.round(((rqState.totalXp-base)/(next-base))*100));
+            document.getElementById('rqLevelBadge').textContent='Nivel '+level;
+            document.getElementById('rqXpBarInner').style.width=pct+'%';
+            document.getElementById('rqXpCurrentText').textContent=rqState.totalXp+' XP';
+            document.getElementById('rqXpNextText').textContent=(next-rqState.totalXp)+' XP para nivel '+(level+1);
+            document.getElementById('rqStreakVal').textContent=rqState.streak;
+            document.getElementById('rqTotalXpVal').textContent=rqState.totalXp;
+            document.getElementById('rqBestStreakVal').textContent=rqState.bestStreak;
+            const avatars=['🧙','🧝','🦸','🧑‍🚀','🐉','👑'];
+            const avatarChar=avatars[Math.min(avatars.length-1,Math.floor(level/3))];
+            document.getElementById('rqAvatar').textContent=avatarChar;
+            document.getElementById('rqXpFloatLevel').textContent='Nivel '+level;
+            document.getElementById('rqXpFloatBarInner').style.width=pct+'%';
+            document.getElementById('rqXpFloatText').textContent=rqState.totalXp+' XP';
+            document.getElementById('rqXpFloatStreak').textContent='🔥 '+rqState.streak;
+            document.getElementById('rqXpFloatAvatar').textContent=avatarChar;
+        }
+
+        function rqRenderTasks(){
+            ['morning','afternoon','night'].forEach(period=>{
+                const container=document.getElementById('rqList'+period.charAt(0).toUpperCase()+period.slice(1));
+                container.innerHTML='';
+                rqState.tasks.filter(t=>t.period===period).forEach(task=>{
+                    const done=!!rqState.completedToday[task.id];
+                    const div=document.createElement('div');
+                    div.className='rq-task'+(done?' done':'');
+                    div.setAttribute('draggable','true'); div.dataset.id=task.id;
+                    div.innerHTML=`<span class="rq-drag-handle" title="Arrastra para reordenar">⠿</span><div class="rq-checkbox" data-role="toggle">${done?'✓':''}</div><div class="rq-task-title" data-role="toggle">${task.title}</div><div class="rq-task-meta">+${task.xp} XP</div><button class="rq-del-btn" title="Eliminar" data-role="delete">✕</button>`;
+                    container.appendChild(div);
+                });
+            });
+        }
+
+        function rqRenderTodayRing(){
+            const pct=rqPctForDay(rqState);
+            const ids=rqState.tasks.map(t=>t.id);
+            const doneCount=ids.filter(id=>rqState.completedToday[id]).length;
+            const circum=175.9;
+            const circle=document.getElementById('rqProgressRingCircle');
+            if(circle) circle.style.strokeDashoffset=circum-(pct/100)*circum;
+            document.getElementById('rqRingPct').textContent=pct+'%';
+            const msg=document.getElementById('rqRingMsg');
+            if(pct===0) msg.textContent='Aún no marcaste ninguna tarea. ¡Empieza!';
+            else if(pct<100) msg.textContent=`${doneCount} de ${ids.length} tareas completadas. ¡Sigue así!`;
+            else msg.textContent='¡Día perfecto! Todas las tareas completadas 🎉';
+        }
+
+        function rqRenderWarrior(){
+            const level=rqLevelFromXp(rqState.totalXp);
+            const tier=rqGetArmorTier(level);
+            const pct=rqPctForDay(rqState);
+            const pieces={boots:pct>=20, gauntlets:pct>=40, chest:pct>=60, helmet:pct>=80, weapon:pct>=100};
+            const extras={pauldrons:pieces.chest&&tier.id>=2, cape:pieces.chest&&tier.id>=2, plume:pieces.helmet&&tier.id>=3, crown:pieces.helmet&&tier.id>=4, aura:pct>=100};
+            const wrap=document.getElementById('rqWrap');
+            wrap.style.setProperty('--rq-armor-main', tier.main);
+            wrap.style.setProperty('--rq-armor-dark', tier.dark);
+            wrap.style.setProperty('--rq-armor-trim', tier.trim);
+            const allKeys=Object.assign({},pieces,extras);
+            Object.keys(allKeys).forEach(key=>{
+                const el=document.getElementById('rq-piece-'+key); if(!el) return;
+                const shouldShow=allKeys[key]; const wasShown=el.classList.contains('equipped');
+                el.classList.toggle('equipped',shouldShow);
+                if(shouldShow&&!wasShown){ el.classList.remove('just-equipped'); void el.offsetWidth; el.classList.add('just-equipped'); }
+            });
+            document.getElementById('rqArmorTierName').textContent='Rango: '+tier.name;
+            const nextTier=rqArmorTierDefs.find(d=>d.minLevel>level);
+            document.getElementById('rqArmorNextHint').textContent=nextTier?`Nivel ${nextTier.minLevel} desbloquea el rango ${nextTier.name}`:'¡Has alcanzado el rango máximo!';
+            const gearOrder=['boots','gauntlets','chest','helmet','weapon'];
+            const gearIcons={boots:'👢',gauntlets:'🧤',chest:'🛡️',helmet:'⛑️',weapon:'⚔️'};
+            const row=document.getElementById('rqGearChecklist');
+            row.innerHTML=gearOrder.map(k=>`<span class="rq-gear-chip ${pieces[k]?'on':''}">${gearIcons[k]}</span>`).join('');
+            const equippedCount=gearOrder.filter(k=>pieces[k]).length;
+            document.getElementById('rqGearCount').textContent=equippedCount+'/'+gearOrder.length+' piezas puestas hoy';
+            if(tier.id>rqState.lastArmorTier){ rqShowToast('🛡️ ¡Nueva armadura: '+tier.name+'!'); rqState.lastArmorTier=tier.id; rqSaveState(); }
+        }
+
+        // ---- Chart helpers ----
+        function rqLevelForPct(p){ if(p>=100)return 4; if(p>=70)return 3; if(p>=40)return 2; if(p>0)return 1; return 0; }
+        function rqGetWindowDays(n){ const today=new Date(),days=[]; for(let i=n-1;i>=0;i--){ const d=new Date(today); d.setDate(today.getDate()-i); days.push(rqFmtDate(d)); } return days; }
+        function rqStarPoints(cx,cy,outerR,innerR,spikes){ let pts=[]; const step=Math.PI/spikes; for(let i=0;i<spikes*2;i++){ const r=(i%2===0)?outerR:innerR; const a=i*step-Math.PI/2; pts.push((cx+Math.cos(a)*r).toFixed(1)+','+(cy+Math.sin(a)*r).toFixed(1)); } return pts.join(' '); }
+        function rqStarSvg(cx,cy,outerR,fill,opts){ opts=opts||{}; const innerR=outerR*(opts.innerRatio||0.45); const spikes=opts.spikes||4; const glow=opts.glow?'filter="url(#rqAGlow)"':''; return `<polygon points="${rqStarPoints(cx,cy,outerR,innerR,spikes)}" fill="${fill}" ${glow}/>`; }
+        function rqGetBezierPath(points,padL,stepX,padT,plotH,maxY){ if(!points.length) return {path:'',coords:[]}; const coords=points.map((val,i)=>({x:padL+i*stepX,y:padT+plotH-(val/maxY)*plotH})); let path=`M ${coords[0].x.toFixed(1)},${coords[0].y.toFixed(1)} `; for(let i=0;i<coords.length-1;i++){ const c=coords[i],n=coords[i+1],cpX1=c.x+stepX/3,cpX2=n.x-stepX/3; path+=`C ${cpX1.toFixed(1)},${c.y.toFixed(1)} ${cpX2.toFixed(1)},${n.y.toFixed(1)} ${n.x.toFixed(1)},${n.y.toFixed(1)} `; } return {path,coords}; }
+
+        const RQ_ANIME_DEFS=`<defs><filter id="rqAGlow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="4" result="blur"/><feComponentTransfer in="blur" result="glow"><feFuncA type="linear" slope="0.8"/></feComponentTransfer><feMerge><feMergeNode in="glow"/><feMergeNode in="SourceGraphic"/></feMerge></filter><pattern id="rqSpeedLines" width="30" height="30" patternTransform="rotate(35)" patternUnits="userSpaceOnUse"><line x1="0" y1="0" x2="0" y2="30" stroke="#ffffff" stroke-opacity="0.03" stroke-width="3"/></pattern><pattern id="rqChartGrid" width="40" height="20" patternUnits="userSpaceOnUse"><rect width="40" height="20" fill="none"/><path d="M 40 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/></pattern></defs>`;
+
+        function rqRenderHeatmap(){ const el=document.getElementById('rqHeatmap'); el.innerHTML=''; rqGetWindowDays(45).forEach(key=>{ const pct=rqState.history[key]!==undefined?rqState.history[key]:0; const lvl=rqLevelForPct(pct); const div=document.createElement('div'); div.className='rq-heat-cell'+(key===rqTodayStr()?' today-cell':''); div.setAttribute('data-lvl',lvl); div.setAttribute('data-tip',key+' · '+pct+'%'); if(lvl===4) div.innerHTML='<span class="rq-heat-star">★</span>'; el.appendChild(div); }); }
+
+        function rqRenderBarChart(){
+            const svg=document.getElementById('rqBarSvg'); const days=rqGetWindowDays(30);
+            const w=600,h=220,padL=32,padB=26,padT=16,padR=10; const plotW=w-padL-padR,plotH=h-padT-padB; const barSlot=plotW/days.length;
+            let elems=RQ_ANIME_DEFS+`<rect x="0" y="0" width="${w}" height="${h}" fill="url(#rqSpeedLines)"/><rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="url(#rqChartGrid)"/>`;
+            [0,25,50,75,100].forEach(v=>{ const y=padT+plotH-(v/100)*plotH; elems+=`<line x1="${padL}" y1="${y}" x2="${w-padR}" y2="${y}" stroke="#2a2850" stroke-opacity="0.15" stroke-width="1"/><text x="${padL-6}" y="${y+3}" text-anchor="end" font-size="9" fill="#9a9bc0" font-family="Outfit,sans-serif" font-weight="600">${v}</text>`; });
+            days.forEach((key,i)=>{ const pct=rqState.history[key]!==undefined?rqState.history[key]:0; const bh=(pct/100)*plotH; const bw=barSlot*0.62; const x=padL+i*barSlot+(barSlot-bw)/2; const y=padT+plotH-bh; const lvl=rqLevelForPct(pct); const isToday=key===rqTodayStr(); const isPerfect=pct>=100; const cx=x+bw/2;
+                elems+=`<defs><linearGradient id="rqBG${i}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${lvl>=4?'#c8ffe0':lvl>=3?'#fff3b0':lvl>=2?'#a9f5cf':lvl>=1?'#7fd8a8':'#3a3660'}"/><stop offset="100%" stop-color="${lvl>=4?'#1f9d5c':lvl>=3?'#c98a1f':lvl>=2?'#164a37':lvl>=1?'#123a2e':'#171533'}"/></linearGradient></defs>`;
+                elems+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(bh,2).toFixed(1)}" rx="5" fill="url(#rqBG${i})" ${isPerfect?'filter="url(#rqAGlow)"':''} ${isToday?'stroke="#00e0ff" stroke-width="1.8"':''}><title>${key} · ${pct}%</title></rect>`;
+                if(isPerfect) elems+=rqStarSvg(cx,y-8,5.5,'#ffe066',{glow:true,spikes:4,innerRatio:0.4});
+            });
+            days.forEach((key,i)=>{ if(i%5===0||i===days.length-1){ const x=padL+i*barSlot+barSlot/2; elems+=`<text x="${x.toFixed(1)}" y="${h-8}" text-anchor="middle" font-size="8" fill="#9a9bc0" font-family="Outfit,sans-serif" font-weight="600">${key.slice(5)}</text>`; } });
+            svg.innerHTML=elems;
+        }
+
+        function rqRenderScatterChart(){
+            const svg=document.getElementById('rqScatterSvg'); const days=rqGetWindowDays(45);
+            const w=600,h=220,padL=34,padB=30,padT=16,padR=16; const plotW=w-padL-padR,plotH=h-padT-padB;
+            let maxXp=20; days.forEach(key=>{const v=rqState.historyXp[key]||0;if(v>maxXp)maxXp=v;}); maxXp=Math.ceil(maxXp/10)*10;
+            let elems=RQ_ANIME_DEFS+`<rect x="0" y="0" width="${w}" height="${h}" fill="url(#rqSpeedLines)"/><rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="url(#rqChartGrid)"/><line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+plotH}" stroke="#443f6e" stroke-opacity="0.3"/><line x1="${padL}" y1="${padT+plotH}" x2="${padL+plotW}" y2="${padT+plotH}" stroke="#443f6e" stroke-opacity="0.3"/>`;
+            [0,0.5,1].forEach(f=>{ const val=Math.round(maxXp*f); const y=padT+plotH-(f*plotH); elems+=`<text x="${padL-6}" y="${y+3}" text-anchor="end" font-size="8" fill="#9a9bc0" font-family="Outfit,sans-serif" font-weight="600">${val}</text><line x1="${padL}" y1="${y}" x2="${padL+plotW}" y2="${y}" stroke="#221f42" stroke-opacity="0.1" stroke-width="1"/>`; });
+            [0,50,100].forEach(v=>{ const x=padL+(v/100)*plotW; elems+=`<text x="${x}" y="${padT+plotH+16}" text-anchor="middle" font-size="8" fill="#9a9bc0" font-family="Outfit,sans-serif" font-weight="600">${v}%</text>`; });
+            days.forEach(key=>{ const pct=rqState.history[key]!==undefined?rqState.history[key]:0; const xp=rqState.historyXp[key]!==undefined?rqState.historyXp[key]:0; const x=padL+(pct/100)*plotW; const y=padT+plotH-(xp/maxXp)*plotH; const isToday=key===rqTodayStr(); const isPerfect=pct>=100; const bs=4.5+(xp/maxXp)*3.5; const color=isToday?'#00e0ff':isPerfect?'#ffe066':'#ff2fb0'; if(isPerfect||isToday) elems+=rqStarSvg(x,y,bs+3,color,{glow:true,spikes:isPerfect?5:4,innerRatio:0.42}); else elems+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${bs.toFixed(1)}" fill="${color}" fill-opacity="0.85" filter="url(#rqAGlow)"><title>${key}: ${pct}% · ${xp} XP</title></circle>`; });
+            elems+=`<text x="${padL+plotW/2}" y="${h-4}" text-anchor="middle" font-size="9" fill="#9a9bc0" font-family="Outfit,sans-serif" font-weight="600">% tareas completadas</text>`;
+            svg.innerHTML=elems;
+        }
+
+        function rqRenderLineChart(){
+            const svg=document.getElementById('rqLineSvg'); const days=rqGetWindowDays(45);
+            const w=600,h=220,padL=38,padB=26,padT=16,padR=14; const plotW=w-padL-padR,plotH=h-padT-padB;
+            let cum=0; const points=days.map(key=>{cum+=(rqState.historyXp[key]||0);return cum;});
+            const maxY=Math.max(10,Math.ceil(Math.max(...points)/10)*10); const stepX=days.length>1?plotW/(days.length-1):plotW;
+            let elems=RQ_ANIME_DEFS+`<rect x="0" y="0" width="${w}" height="${h}" fill="url(#rqSpeedLines)"/><rect x="${padL}" y="${padT}" width="${plotW}" height="${plotH}" fill="url(#rqChartGrid)"/>`;
+            [0,0.25,0.5,0.75,1].forEach(f=>{ const y=padT+plotH-(f*plotH); elems+=`<line x1="${padL}" y1="${y}" x2="${w-padR}" y2="${y}" stroke="#221f42" stroke-opacity="0.1" stroke-width="1"/><text x="${padL-6}" y="${y+3}" text-anchor="end" font-size="8" fill="#9a9bc0" font-family="Outfit,sans-serif" font-weight="600">${Math.round(maxY*f)}</text>`; });
+            const {path:pathD,coords}=rqGetBezierPath(points,padL,stepX,padT,plotH,maxY);
+            if(pathD){ const areaD=pathD+`L ${(padL+plotW).toFixed(1)},${(padT+plotH).toFixed(1)} L ${padL},${(padT+plotH).toFixed(1)} Z`; elems+=`<defs><linearGradient id="rqLineGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00e0ff" stop-opacity="0.4"/><stop offset="100%" stop-color="#00e0ff" stop-opacity="0"/></linearGradient></defs>`; elems+=`<path d="${areaD}" fill="url(#rqLineGrad)"/><path d="${pathD}" fill="none" stroke="#ff2fb0" stroke-width="5" stroke-linecap="round" stroke-opacity="0.3" filter="url(#rqAGlow)"/><path d="${pathD}" fill="none" stroke="#00e0ff" stroke-width="2.8" stroke-linecap="round" filter="url(#rqAGlow)"/>`;
+                points.forEach((val,i)=>{ if(i%6===0||i===points.length-1){ const x=coords[i].x,y=coords[i].y; if(i===points.length-1) elems+=rqStarSvg(x,y,7,'#ffe066',{glow:true,spikes:5,innerRatio:0.42}); else elems+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.5" fill="#ff2fb0" filter="url(#rqAGlow)"><title>${days[i]}: ${val} XP</title></circle>`; } });
+            }
+            days.forEach((key,i)=>{ if(i%9===0||i===days.length-1){ const x=padL+i*stepX; elems+=`<text x="${x.toFixed(1)}" y="${h-6}" text-anchor="middle" font-size="8" fill="#9a9bc0" font-family="Outfit,sans-serif" font-weight="600">${key.slice(5)}</text>`; } });
+            svg.innerHTML=elems;
+        }
+
+        function rqRenderCharts(){ rqRenderHeatmap(); rqRenderBarChart(); rqRenderScatterChart(); rqRenderLineChart(); }
+
+        function rqRenderBadges(){
+            const row=document.getElementById('rqBadgesRow'); row.innerHTML='';
+            rqBadgeDefs.forEach(b=>{ const unlocked=rqState.unlockedBadges.includes(b.id); const div=document.createElement('div'); div.className='rq-badge'+(unlocked?' unlocked':''); div.innerHTML=`<div class="rq-badge-icon">${b.icon}</div><div class="rq-badge-name">${b.name}</div>`; row.appendChild(div); });
+        }
+
+        function rqRenderAll(){ rqRenderPlayer(); rqRenderTasks(); rqRenderTodayRing(); rqRenderWarrior(); rqRenderCharts(); rqRenderBadges(); }
+
+        function rqResetAll(){ if(confirm('¿Seguro que quieres borrar todo tu progreso? Esta acción no se puede deshacer.')){ localStorage.removeItem(RQ_STORAGE_KEY); rqState=rqLoadState(); rqRenderAll(); } }
+
+        function rqExportData(){ rqSaveState(); const blob=new Blob([JSON.stringify(rqState,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='rutinaquest_backup_'+rqTodayStr()+'.json'; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); rqShowToast('Respaldo exportado'); }
+
+        function rqImportData(event){ const file=event.target.files[0]; if(!file) return; const reader=new FileReader(); reader.onload=e=>{ try{ const imp=JSON.parse(e.target.result); if(!imp.tasks||!imp.history){rqShowToast('Archivo inválido');return;} if(!imp.historyXp)imp.historyXp={}; if(imp.lastArmorTier===undefined)imp.lastArmorTier=0; localStorage.setItem(RQ_STORAGE_KEY,JSON.stringify(imp)); rqState=rqLoadState(); rqRenderAll(); rqShowToast('Respaldo importado'); }catch(err){rqShowToast('No se pudo leer el archivo');} }; reader.readAsText(file); event.target.value=''; }
+
+        // ---- Floating XP bar ----
+        function rqSetupFloatingXp(){
+            const playerCard=document.getElementById('rqPlayerCard');
+            const xpFloat=document.getElementById('rqXpFloat');
+            const obs=new IntersectionObserver((entries)=>{ entries.forEach(entry=>{ if(entry.isIntersecting) xpFloat.classList.remove('visible'); else if(entry.boundingClientRect.top<0) xpFloat.classList.add('visible'); else xpFloat.classList.remove('visible'); }); },{threshold:0});
+            obs.observe(playerCard);
+        }
+
+        // ---- Chart tabs ----
+        let rqCurrentChart=localStorage.getItem(RQ_CHART_PREF)||'heatmap';
+        function rqSetupChartTabs(){
+            const btns=document.querySelectorAll('.rq-chart-tab-btn');
+            const views=document.querySelectorAll('.rq-chart-view');
+            function apply(){ btns.forEach(b=>b.classList.toggle('active',b.dataset.chart===rqCurrentChart)); views.forEach(v=>v.classList.toggle('active',v.dataset.view===rqCurrentChart)); }
+            btns.forEach(btn=>{ btn.addEventListener('click',()=>{ rqCurrentChart=btn.dataset.chart; localStorage.setItem(RQ_CHART_PREF,rqCurrentChart); apply(); }); });
+            apply();
+        }
+
+        // ---- RutinaQuest internal theme picker ----
+        function rqApplyInternalTheme(themeId){
+            const wrap=document.getElementById('rqWrap');
+            wrap.setAttribute('data-rq-theme',themeId);
+            localStorage.setItem(RQ_THEME_PREF,themeId);
+            const def=rqThemeDefs.find(t=>t.id===themeId)||rqThemeDefs[0];
+            document.getElementById('rqThemePickerLabel').textContent=def.name;
+            document.querySelector('.rq-theme-swatch-mini').style.background=def.swatch;
+            document.querySelectorAll('.rq-theme-option').forEach(opt=>opt.classList.toggle('selected',opt.dataset.theme===themeId));
+        }
+
+        function rqSetupThemePicker(){
+            const dropdown=document.getElementById('rqThemeDropdown');
+            const btn=document.getElementById('rqThemePickerBtn');
+            rqThemeDefs.forEach(t=>{ const opt=document.createElement('div'); opt.className='rq-theme-option'; opt.dataset.theme=t.id; opt.innerHTML=`<div class="rq-swatch" style="background:${t.swatch}"></div><div class="rq-theme-name">${t.name}</div>`; opt.addEventListener('click',()=>{ rqApplyInternalTheme(t.id); dropdown.classList.remove('open'); }); dropdown.appendChild(opt); });
+            btn.addEventListener('click',(e)=>{ e.stopPropagation(); dropdown.classList.toggle('open'); });
+            document.addEventListener('click',(e)=>{ if(!dropdown.contains(e.target)&&e.target!==btn) dropdown.classList.remove('open'); });
+            const saved=localStorage.getItem(RQ_THEME_PREF)||'neon';
+            rqApplyInternalTheme(saved);
+        }
+
+        // ---- Drag & drop ----
+        function rqGetDragAfterEl(container,y){ const els=[...container.querySelectorAll('.rq-task:not(.dragging)')]; return els.reduce((cl,ch)=>{ const box=ch.getBoundingClientRect(); const off=y-box.top-box.height/2; if(off<0&&off>cl.offset) return {offset:off,element:ch}; return cl; },{offset:Number.NEGATIVE_INFINITY,element:null}).element; }
+        function rqPersistOrder(){ const newTasks=[]; ['morning','afternoon','night'].forEach(period=>{ const c=document.getElementById('rqList'+period.charAt(0).toUpperCase()+period.slice(1)); [...c.querySelectorAll('.rq-task')].forEach(el=>{ const task=rqState.tasks.find(t=>t.id===el.dataset.id); if(task){task.period=period;newTasks.push(task);} }); }); rqState.tasks=newTasks; rqSaveState(); }
+        function rqSetupDragAndDrop(){
+            const lists=['morning','afternoon','night'].map(p=>document.getElementById('rqList'+p.charAt(0).toUpperCase()+p.slice(1)));
+            lists.forEach(container=>{
+                container.addEventListener('dragstart',e=>{ const item=e.target.closest('.rq-task'); if(!item)return; item.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; try{e.dataTransfer.setData('text/plain',item.dataset.id);}catch(err){} });
+                container.addEventListener('dragend',e=>{ const item=e.target.closest('.rq-task'); if(item)item.classList.remove('dragging'); lists.forEach(l=>l.classList.remove('drag-target')); rqPersistOrder(); });
+                container.addEventListener('dragover',e=>{ e.preventDefault(); const dragging=document.querySelector('.rq-task.dragging'); if(!dragging)return; lists.forEach(l=>l.classList.toggle('drag-target',l===container)); const after=rqGetDragAfterEl(container,e.clientY); if(after==null)container.appendChild(dragging); else if(after!==dragging)container.insertBefore(dragging,after); });
+                container.addEventListener('drop',e=>e.preventDefault());
+                container.addEventListener('click',e=>{ const item=e.target.closest('.rq-task'); if(!item)return; if(e.target.closest('[data-role="delete"]')){ rqDeleteTask(item.dataset.id); return; } if(e.target.closest('[data-role="toggle"]')) rqToggleTask(item.dataset.id,e); });
+            });
+        }
+
+        // ---- Init ----
+        let rqState = rqLoadState();
+        rqCheckBadges();
+        rqSaveState();
+        rqRenderAll();
+        rqSetupFloatingXp();
+        rqSetupChartTabs();
+        rqSetupThemePicker();
+        rqSetupDragAndDrop();
+    </script>
+</body>
+
+</html>
