@@ -1,75 +1,125 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PocketTools | Cuenta Regresiva</title>
+    <title>PocketTools | Temporizador de Secuencias</title>
+    <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
     <div class="app-container tool-view active">
+        
+        <!-- CABECERA ESTÁNDAR -->
         <div class="tool-header">
             <a href="index.html" class="back-btn" aria-label="Volver">
                 <i class="fa-solid fa-arrow-left"></i>
             </a>
-            <h2 class="tool-title" style="flex:1;">Cuenta Regresiva</h2>
+            <h2 class="tool-title" style="flex:1;">Temporizador</h2>
             <button id="theme-toggle" class="secondary-btn" aria-label="Cambiar Tema"
                 style="padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
                 <i class="fa-solid fa-moon"></i>
             </button>
         </div>
 
+        <!-- CONTENIDO DE LA HERRAMIENTA -->
         <div id="tool-content" style="flex: 1; display: flex; flex-direction: column;">
-            <div
-                style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 24px;">
-                <!-- Inputs -->
-                <div style="display: flex; gap: 12px; align-items: center;">
-                    <div class="input-group" style="text-align: center; margin:0;">
-                        <label>Min</label>
-                        <input type="number" id="timer-min" value="5" min="0" max="999"
-                            style="width: 80px; text-align: center; font-size: 1.5rem;">
+            
+            <!-- ========== VIEW: Sequence List ========== -->
+            <div id="view-list">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <h3 style="color:var(--text-color); font-size:1.1rem;">Mis Secuencias</h3>
+                    <button class="primary-btn" onclick="showEditor(null)" style="padding: 8px 16px; font-size: 0.9rem; width: auto;"><i class="fa-solid fa-plus"></i> Nueva Secuencia</button>
+                </div>
+                <div id="sequence-list"></div>
+            </div>
+
+            <!-- ========== VIEW: Sequence Editor ========== -->
+            <div id="view-editor" style="display:none;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h3 style="color:var(--text-color); font-size:1.1rem;" id="editor-title">Nueva Secuencia</h3>
+                    <button class="secondary-btn" onclick="cancelEditor()" style="padding: 6px 12px; font-size: 0.9rem;"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+                </div>
+
+                <div class="input-group" style="margin-bottom:20px;">
+                    <label for="seq-name">Nombre de la secuencia</label>
+                    <input type="text" id="seq-name" placeholder="Ej: Entrenamiento HIIT">
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                    <label style="font-size:0.85rem; font-weight:500; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Intervalos</label>
+                    <button class="secondary-btn" onclick="addInterval()" style="padding:6px 14px; font-size:0.8rem; width: auto;"><i class="fa-solid fa-plus"></i> Agregar</button>
+                </div>
+                <div class="interval-list" id="interval-list"></div>
+
+                <div style="display:flex; gap:10px; margin-top:24px;">
+                    <button class="primary-btn" onclick="saveSequence()" style="flex:1;"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+                    <button class="secondary-btn" onclick="cancelEditor()" style="flex:1;">Cancelar</button>
+                </div>
+            </div>
+
+            <!-- ========== VIEW: Timer Player ========== -->
+            <div id="view-player" style="display:none; flex: 1; flex-direction: column;">
+                <!-- Sequence progress bar -->
+                <div class="sequence-progress" id="progress-bar"></div>
+
+                <div class="timer-display">
+                    <p class="timer-description" id="player-description">—</p>
+                    <p class="timer-progress-info" id="player-progress-info">—</p>
+
+                    <div class="timer-circle" id="timer-circle">
+                        <svg viewBox="0 0 100 100">
+                            <circle class="track" cx="50" cy="50" r="45"></circle>
+                            <circle class="progress" id="timer-progress-ring" cx="50" cy="50" r="45"
+                                stroke-dasharray="282.74" stroke-dashoffset="0"></circle>
+                        </svg>
+                        <div class="timer-time" id="player-time">00:00</div>
                     </div>
-                    <span style="font-size: 2rem; font-weight: bold; margin-top: 14px;">:</span>
-                    <div class="input-group" style="text-align: center; margin:0;">
-                        <label>Seg</label>
-                        <input type="number" id="timer-sec" value="0" min="0" max="59"
-                            style="width: 80px; text-align: center; font-size: 1.5rem;">
+
+                    <div class="timer-controls" id="player-controls">
+                        <button class="primary-btn" id="btn-pause" onclick="togglePause()"><i class="fa-solid fa-pause"></i> Pausar</button>
+                        <button class="secondary-btn" id="btn-skip" onclick="skipInterval()"><i class="fa-solid fa-forward-step"></i> Saltar</button>
+                        <button class="danger-btn" id="btn-stop" onclick="stopPlayer()"><i class="fa-solid fa-stop"></i> Detener</button>
                     </div>
                 </div>
+            </div>
 
-                <!-- Display -->
-                <div id="timer-display" class="counter-display"
-                    style="font-family: monospace; font-size: 5rem; line-height: 1;">
-                    05:00
+            <!-- ========== VIEW: Completion ========== -->
+            <div id="view-complete" style="display:none; flex: 1; flex-direction: column; justify-content: center;">
+                <div class="completion-screen">
+                    <div class="completion-icon">🏁</div>
+                    <h2>¡Secuencia Completa!</h2>
+                    <p id="complete-summary">Has completado todos los intervalos.</p>
+                    <button class="primary-btn" onclick="showList()"><i class="fa-solid fa-arrow-left"></i> Volver a Secuencias</button>
                 </div>
+            </div>
 
-                <!-- Controls -->
-                <div class="counter-controls">
-                    <button id="btn-timer-reset" class="counter-btn btn-reset" title="Reiniciar">
-                        <i class="fa-solid fa-rotate-right"></i>
-                    </button>
-                    <button id="btn-timer-toggle" class="counter-btn btn-plus"
-                        style="width: 80px; height: 80px; font-size: 2rem;" title="Iniciar/Pausar">
-                        <i class="fa-solid fa-play"></i>
-                    </button>
-                </div>
+        </div>
+    </div>
 
-                <p style="text-align:center; color: var(--text-muted); font-size: 0.9rem; margin-top: 16px;">
-                    <i class="fa-solid fa-volume-high"></i> La alarma sonará al finalizar.
-                </p>
+    <!-- Delete Confirmation Modal -->
+    <div class="modal-overlay" id="delete-modal">
+        <div class="modal">
+            <h3><i class="fa-solid fa-trash"></i> Eliminar Secuencia</h3>
+            <p style="color:var(--text-muted); margin-bottom:4px;">¿Estás seguro de que deseas eliminar esta secuencia?</p>
+            <p style="color:var(--text-color); font-weight:600;" id="delete-name"></p>
+            <div class="modal-actions">
+                <button class="secondary-btn" onclick="closeDeleteModal()">Cancelar</button>
+                <button class="danger-btn" onclick="confirmDelete()">Eliminar</button>
             </div>
         </div>
     </div>
 
+    <!-- SCRIPTS -->
     <script>
-        // === Theme System ===
-        const TOOL_ID = 'timer';
+        // ==========================================
+        // 1. SISTEMA DE TEMAS (OBLIGATORIO)
+        // ==========================================
+        const TOOL_ID = 'timer'; 
         const themeBtn = document.getElementById('theme-toggle');
 
         function loadTheme() {
@@ -112,126 +162,446 @@
         themeBtn.addEventListener('click', toggleTheme);
         loadTheme();
 
-        // === Tool Logic ===
-        const minInput = document.getElementById('timer-min');
-        const secInput = document.getElementById('timer-sec');
-        const display = document.getElementById('timer-display');
-        const btnToggle = document.getElementById('btn-timer-toggle');
-        const btnReset = document.getElementById('btn-timer-reset');
+        // ==========================================
+        // 2. LÓGICA DE LA HERRAMIENTA
+        // ==========================================
+        const STORAGE_KEY = 'pt_timer_sequences';
 
-        let timerInterval = null;
-        let timeLeft = 300;
-        let isRunning = false;
-        let audioCtx;
+        function getSequences() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        }
 
-        const playAlarm = () => {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function saveSequences(sequences) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(sequences));
+        }
 
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        }
 
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
+        let audioCtx = null;
+
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playBeep(frequency, duration, startTime, volume = 0.5) {
+            const ctx = getAudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
 
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(frequency, startTime);
 
-            const now = audioCtx.currentTime;
+            gain.gain.setValueAtTime(0, startTime);
+            gain.gain.linearRampToValueAtTime(volume, startTime + 0.01);
+            gain.gain.setValueAtTime(volume, startTime + duration - 0.02);
+            gain.gain.linearRampToValueAtTime(0, startTime + duration);
 
-            gain.gain.setValueAtTime(0.5, now);
-            gain.gain.linearRampToValueAtTime(0, now + 0.2);
-            gain.gain.setValueAtTime(0.5, now + 0.4);
-            gain.gain.linearRampToValueAtTime(0, now + 0.6);
-            gain.gain.setValueAtTime(0.5, now + 0.8);
-            gain.gain.linearRampToValueAtTime(0, now + 1.0);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
 
-            osc.start(now);
-            osc.stop(now + 1.2);
-        };
+            osc.start(startTime);
+            osc.stop(startTime + duration);
+        }
 
-        const updateDisplay = () => {
-            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
-            const s = (timeLeft % 60).toString().padStart(2, '0');
-            display.textContent = `${m}:${s}`;
+        function playAlarm() {
+            const ctx = getAudioContext();
+            const now = ctx.currentTime;
+            playBeep(440, 0.12, now,       0.45);
+            playBeep(520, 0.12, now + 0.25, 0.55);
+            playBeep(620, 0.12, now + 0.50, 0.65);
+            playBeep(720, 0.12, now + 0.75, 0.75);
+            playBeep(880, 0.70, now + 1.00, 0.85);
+            playBeep(880, 0.15, now + 1.80, 0.60);
+        }
 
-            if (isRunning) document.title = `${m}:${s} - Timer`;
-            else document.title = 'PocketTools | Cuenta Regresiva';
-        };
+        function playTickBeep(volume = 0.15) {
+            const ctx = getAudioContext();
+            playBeep(330, 0.06, ctx.currentTime, volume);
+        }
 
-        const setFromInputs = () => {
-            if (isRunning) return;
-            let m = parseInt(minInput.value) || 0;
-            let s = parseInt(secInput.value) || 0;
-            timeLeft = m * 60 + s;
-            updateDisplay();
-        };
+        const views = ['view-list', 'view-editor', 'view-player', 'view-complete'];
 
-        minInput.oninput = setFromInputs;
-        secInput.oninput = setFromInputs;
-
-        btnToggle.onclick = () => {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-
-            if (isRunning) {
-                clearInterval(timerInterval);
-                isRunning = false;
-                btnToggle.innerHTML = '<i class="fa-solid fa-play"></i>';
-                btnToggle.classList.remove('btn-minus');
-                btnToggle.classList.add('btn-plus');
-                minInput.disabled = false;
-                secInput.disabled = false;
-                document.title = 'PocketTools | Cuenta Regresiva';
-            } else {
-                if (timeLeft <= 0) return;
-
-                isRunning = true;
-                btnToggle.innerHTML = '<i class="fa-solid fa-pause"></i>';
-                btnToggle.classList.remove('btn-plus');
-                btnToggle.classList.add('btn-minus');
-
-                minInput.disabled = true;
-                secInput.disabled = true;
-
-                timerInterval = setInterval(() => {
-                    timeLeft--;
-                    updateDisplay();
-
-                    if (timeLeft <= 0) {
-                        clearInterval(timerInterval);
-                        isRunning = false;
-                        updateDisplay();
-
-                        btnToggle.innerHTML = '<i class="fa-solid fa-play"></i>';
-                        btnToggle.classList.remove('btn-minus');
-                        btnToggle.classList.add('btn-plus');
-                        minInput.disabled = false;
-                        secInput.disabled = false;
-
-                        playAlarm();
-                        alert("¡Tiempo Terminado!");
-                        document.title = '¡Tiempo!';
+        function showView(viewId) {
+            views.forEach(v => {
+                const el = document.getElementById(v);
+                if (el) {
+                    if (v === 'view-player' || v === 'view-complete') {
+                        el.style.display = v === viewId ? 'flex' : 'none';
+                    } else {
+                        el.style.display = v === viewId ? 'block' : 'none';
                     }
-                }, 1000);
+                }
+            });
+        }
+
+        function showList() {
+            showView('view-list');
+            renderSequenceList();
+            stopTimer();
+        }
+
+        let deleteTargetId = null;
+
+        function renderSequenceList() {
+            const sequences = getSequences();
+            const container = document.getElementById('sequence-list');
+
+            if (sequences.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon"><i class="fa-solid fa-stopwatch"></i></div>
+                        <p>No tienes secuencias creadas aún</p>
+                        <button class="primary-btn" onclick="showEditor(null)" style="width: auto; margin: 0 auto;"><i class="fa-solid fa-plus"></i> Crear primera secuencia</button>
+                    </div>
+                `;
+                return;
             }
-        };
 
-        btnReset.onclick = () => {
-            if (timerInterval) clearInterval(timerInterval);
-            isRunning = false;
-            btnToggle.innerHTML = '<i class="fa-solid fa-play"></i>';
-            btnToggle.classList.remove('btn-minus');
-            btnToggle.classList.add('btn-plus');
-            minInput.disabled = false;
-            secInput.disabled = false;
-            document.title = 'PocketTools | Cuenta Regresiva';
-            setFromInputs();
-        };
+            container.innerHTML = sequences.map(seq => {
+                const totalSeconds = seq.intervals.reduce((sum, i) => sum + i.duration, 0);
+                const totalFormatted = formatTime(totalSeconds);
+                return `
+                    <div class="sequence-card" style="margin-bottom:10px;">
+                        <div class="sequence-card-header">
+                            <h3>${escapeHtml(seq.name)}</h3>
+                        </div>
+                        <div class="sequence-card-meta">
+                            <span class="badge">${seq.intervals.length} intervalo${seq.intervals.length !== 1 ? 's' : ''}</span>
+                            <span class="badge accent"><i class="fa-solid fa-stopwatch"></i> ${totalFormatted}</span>
+                        </div>
+                        <div class="sequence-card-actions">
+                            <button class="primary-btn" onclick="startSequence('${seq.id}')" style="padding:8px 16px; font-size:0.85rem; width: auto;"><i class="fa-solid fa-play"></i> Iniciar</button>
+                            <button class="secondary-btn" onclick="showEditor('${seq.id}')" style="padding:8px 16px; font-size:0.85rem; width: auto;"><i class="fa-solid fa-pen"></i> Editar</button>
+                            <button class="icon-btn danger" onclick="showDeleteModal('${seq.id}')" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
 
-        isRunning = false;
-        if (timerInterval) clearInterval(timerInterval);
-        setFromInputs();
+        function showDeleteModal(id) {
+            deleteTargetId = id;
+            const seq = getSequences().find(s => s.id === id);
+            document.getElementById('delete-name').textContent = seq ? seq.name : '';
+            document.getElementById('delete-modal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.remove('active');
+            deleteTargetId = null;
+        }
+
+        function confirmDelete() {
+            if (!deleteTargetId) return;
+            const sequences = getSequences().filter(s => s.id !== deleteTargetId);
+            saveSequences(sequences);
+            closeDeleteModal();
+            renderSequenceList();
+        }
+
+        let editingId = null;
+        let editorIntervals = [];
+
+        function showEditor(id) {
+            editingId = id;
+
+            if (id) {
+                const seq = getSequences().find(s => s.id === id);
+                if (!seq) return;
+                document.getElementById('seq-name').value = seq.name;
+                editorIntervals = seq.intervals.map(i => ({ ...i }));
+                document.getElementById('editor-title').textContent = 'Editar Secuencia';
+            } else {
+                document.getElementById('seq-name').value = '';
+                editorIntervals = [
+                    { duration: 20, description: 'Intervalo 1' },
+                    { duration: 15, description: 'Intervalo 2' }
+                ];
+                document.getElementById('editor-title').textContent = 'Nueva Secuencia';
+            }
+
+            renderEditorIntervals();
+            showView('view-editor');
+        }
+
+        function cancelEditor() {
+            editingId = null;
+            editorIntervals = [];
+            showList();
+        }
+
+        function renderEditorIntervals() {
+            const container = document.getElementById('interval-list');
+            container.innerHTML = editorIntervals.map((interval, idx) => `
+                <div class="interval-item">
+                    <span class="interval-number">${idx + 1}</span>
+                    <input type="number" min="1" max="9999" value="${interval.duration}"
+                        onchange="updateInterval(${idx}, 'duration', this.value)"
+                        placeholder="Seg" title="Duración en segundos">
+                    <input type="text" value="${escapeHtml(interval.description)}"
+                        onchange="updateInterval(${idx}, 'description', this.value)"
+                        placeholder="Descripción del intervalo">
+                    <div class="interval-actions">
+                        ${idx > 0 ? `<button class="icon-btn" onclick="moveInterval(${idx}, -1)" title="Subir"><i class="fa-solid fa-arrow-up"></i></button>` : ''}
+                        ${idx < editorIntervals.length - 1 ? `<button class="icon-btn" onclick="moveInterval(${idx}, 1)" title="Bajar"><i class="fa-solid fa-arrow-down"></i></button>` : ''}
+                        ${editorIntervals.length > 1 ? `<button class="icon-btn danger" onclick="removeInterval(${idx})" title="Eliminar"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addInterval() {
+            editorIntervals.push({ duration: 15, description: `Intervalo ${editorIntervals.length + 1}` });
+            renderEditorIntervals();
+        }
+
+        function removeInterval(idx) {
+            editorIntervals.splice(idx, 1);
+            renderEditorIntervals();
+        }
+
+        function updateInterval(idx, field, value) {
+            if (field === 'duration') {
+                const num = parseInt(value, 10);
+                editorIntervals[idx].duration = isNaN(num) || num < 1 ? 1 : num;
+            } else {
+                editorIntervals[idx].description = value;
+            }
+        }
+
+        function moveInterval(idx, direction) {
+            const target = idx + direction;
+            if (target < 0 || target >= editorIntervals.length) return;
+            [editorIntervals[idx], editorIntervals[target]] = [editorIntervals[target], editorIntervals[idx]];
+            renderEditorIntervals();
+        }
+
+        function saveSequence() {
+            const name = document.getElementById('seq-name').value.trim();
+            if (!name) {
+                document.getElementById('seq-name').focus();
+                document.getElementById('seq-name').style.borderColor = '#ef4444';
+                setTimeout(() => { document.getElementById('seq-name').style.borderColor = ''; }, 2000);
+                return;
+            }
+
+            const items = document.querySelectorAll('#interval-list .interval-item');
+            items.forEach((item, idx) => {
+                const durInput = item.querySelector('input[type="number"]');
+                const descInput = item.querySelector('input[type="text"]');
+                const dur = parseInt(durInput.value, 10);
+                editorIntervals[idx].duration = isNaN(dur) || dur < 1 ? 1 : dur;
+                editorIntervals[idx].description = descInput.value;
+            });
+
+            const sequences = getSequences();
+
+            if (editingId) {
+                const idx = sequences.findIndex(s => s.id === editingId);
+                if (idx !== -1) {
+                    sequences[idx].name = name;
+                    sequences[idx].intervals = editorIntervals.map(i => ({ ...i }));
+                }
+            } else {
+                sequences.push({
+                    id: generateId(),
+                    name: name,
+                    intervals: editorIntervals.map(i => ({ ...i }))
+                });
+            }
+
+            saveSequences(sequences);
+            editingId = null;
+            editorIntervals = [];
+            showList();
+        }
+
+        let playerSequence = null;
+        let currentIntervalIdx = 0;
+        let timeRemaining = 0;
+        let totalDuration = 0;
+        let timerHandle = null;
+        let isPaused = false;
+        let lastTickTime = 0;
+        let lastBeepTime = 0;
+
+        function startSequence(id) {
+            const seq = getSequences().find(s => s.id === id);
+            if (!seq || seq.intervals.length === 0) return;
+
+            getAudioContext();
+
+            playerSequence = seq;
+            currentIntervalIdx = 0;
+            isPaused = false;
+
+            showView('view-player');
+            renderProgressBar();
+            startCurrentInterval();
+        }
+
+        function renderProgressBar() {
+            const bar = document.getElementById('progress-bar');
+            bar.innerHTML = playerSequence.intervals.map((_, idx) => {
+                let cls = 'step';
+                if (idx < currentIntervalIdx) cls += ' completed';
+                else if (idx === currentIntervalIdx) cls += ' active';
+                return `<div class="${cls}"></div>`;
+            }).join('');
+        }
+
+        function startCurrentInterval() {
+            if (currentIntervalIdx >= playerSequence.intervals.length) {
+                showCompletion();
+                return;
+            }
+
+            const interval = playerSequence.intervals[currentIntervalIdx];
+            timeRemaining = interval.duration;
+            totalDuration = interval.duration;
+
+            updatePlayerUI();
+            renderProgressBar();
+
+            isPaused = false;
+            document.getElementById('btn-pause').innerHTML = '<i class="fa-solid fa-pause"></i> Pausar';
+
+            lastTickTime = Date.now();
+            lastBeepTime = 0;
+            clearInterval(timerHandle);
+            timerHandle = setInterval(tick, 100);
+        }
+
+        function tick() {
+            if (isPaused) return;
+
+            const now = Date.now();
+            const elapsed = (now - lastTickTime) / 1000;
+            lastTickTime = now;
+
+            timeRemaining -= elapsed;
+
+            if (timeRemaining <= 3 && timeRemaining > 0) {
+                const now = Date.now();
+                let beepInterval, volume;
+                if (timeRemaining > 2) {
+                    beepInterval = 350;
+                    volume = 0.10 + (1 - (timeRemaining - 2)) * 0.10;
+                } else if (timeRemaining > 1) {
+                    beepInterval = 200;
+                    volume = 0.20 + (1 - (timeRemaining - 1)) * 0.15;
+                } else {
+                    beepInterval = 120;
+                    volume = 0.35 + (1 - timeRemaining) * 0.20;
+                }
+
+                if (now - lastBeepTime >= beepInterval) {
+                    playTickBeep(volume);
+                    lastBeepTime = now;
+                }
+            }
+
+            if (timeRemaining <= 0) {
+                timeRemaining = 0;
+                updatePlayerUI();
+                clearInterval(timerHandle);
+                playAlarm();
+
+                const circle = document.getElementById('timer-circle');
+                circle.classList.add('flashing');
+                setTimeout(() => circle.classList.remove('flashing'), 2000);
+
+                setTimeout(() => {
+                    currentIntervalIdx++;
+                    startCurrentInterval();
+                }, 3000);
+                return;
+            }
+
+            updatePlayerUI();
+        }
+
+        function updatePlayerUI() {
+            const interval = playerSequence.intervals[currentIntervalIdx];
+
+            document.getElementById('player-description').textContent = interval.description || '—';
+            document.getElementById('player-progress-info').textContent =
+                `Intervalo ${currentIntervalIdx + 1} de ${playerSequence.intervals.length} — ${playerSequence.name}`;
+            document.getElementById('player-time').textContent = formatTime(Math.ceil(timeRemaining));
+
+            const circumference = 2 * Math.PI * 45;
+            const fraction = totalDuration > 0 ? timeRemaining / totalDuration : 0;
+            const offset = circumference * (1 - fraction);
+            document.getElementById('timer-progress-ring').style.strokeDashoffset = offset;
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            const btn = document.getElementById('btn-pause');
+            if (isPaused) {
+                btn.innerHTML = '<i class="fa-solid fa-play"></i> Reanudar';
+            } else {
+                lastTickTime = Date.now();
+                btn.innerHTML = '<i class="fa-solid fa-pause"></i> Pausar';
+            }
+        }
+
+        function skipInterval() {
+            clearInterval(timerHandle);
+            currentIntervalIdx++;
+            startCurrentInterval();
+        }
+
+        function stopPlayer() {
+            stopTimer();
+            showList();
+        }
+
+        function stopTimer() {
+            clearInterval(timerHandle);
+            timerHandle = null;
+            isPaused = false;
+            playerSequence = null;
+            currentIntervalIdx = 0;
+        }
+
+        function showCompletion() {
+            clearInterval(timerHandle);
+            const name = playerSequence ? playerSequence.name : '';
+            const total = playerSequence
+                ? playerSequence.intervals.reduce((s, i) => s + i.duration, 0)
+                : 0;
+
+            document.getElementById('complete-summary').textContent =
+                `"${name}" — ${playerSequence.intervals.length} intervalos completados en ${formatTime(total)} total.`;
+
+            playAlarm();
+            showView('view-complete');
+            playerSequence = null;
+        }
+
+        function formatTime(totalSeconds) {
+            const s = Math.max(0, Math.floor(totalSeconds));
+            const mins = Math.floor(s / 60);
+            const secs = s % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        renderSequenceList();
     </script>
 </body>
-
 </html>

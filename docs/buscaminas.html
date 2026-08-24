@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PocketTools | Buscaminas</title>
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container tool-view active">
+        
+        <!-- CABECERA ESTÁNDAR -->
+        <div class="tool-header">
+            <a href="juegos.html" class="back-btn" aria-label="Volver">
+                <i class="fa-solid fa-arrow-left"></i>
+            </a>
+            <h2 class="tool-title" style="flex:1;">Buscaminas</h2>
+            <button id="theme-toggle" class="secondary-btn" aria-label="Cambiar Tema"
+                style="padding: 8px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+        </div>
+
+        <!-- CONTENIDO DE LA HERRAMIENTA -->
+        <div id="tool-content" style="flex: 1; display: flex; flex-direction: column;">
+            
+            <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                <div class="input-group" style="flex: 1; margin: 0;">
+                    <select id="ms-difficulty">
+                        <option value="easy">Fácil (9x9, 10 minas)</option>
+                        <option value="medium">Medio (16x16, 40 minas)</option>
+                    </select>
+                </div>
+                <button class="primary-btn" onclick="initGame()" style="width: auto;"><i class="fa-solid fa-play"></i> Jugar</button>
+            </div>
+
+            <div class="ms-header">
+                <div class="ms-counter" id="ms-mine-count">010</div>
+                <button class="ms-btn-face" id="ms-face" onclick="initGame()">🙂</button>
+                <div class="ms-counter" id="ms-timer">000</div>
+            </div>
+
+            <div style="flex: 1; display: flex; overflow: auto; padding-bottom: 20px;">
+                <table id="ms-board" class="minesweeper-table" style="margin: auto;"></table>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        // ==========================================
+        // 1. SISTEMA DE TEMAS (OBLIGATORIO)
+        // ==========================================
+        const TOOL_ID = 'buscaminas'; 
+        const themeBtn = document.getElementById('theme-toggle');
+
+        function loadTheme() {
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            applyTheme(saved[TOOL_ID] || 'dark');
+        }
+
+        function toggleTheme() {
+            const list = ['dark', 'light', 'matrix', 'kids', 'cyberpunk', 'nordic', 'forest'];
+            const saved = JSON.parse(localStorage.getItem('pt_tool_themes') || '{}');
+            let current = saved[TOOL_ID] || 'dark';
+            let idx = list.indexOf(current);
+            if (idx === -1) idx = 0;
+            const next = list[(idx + 1) % list.length];
+            saved[TOOL_ID] = next;
+            localStorage.setItem('pt_tool_themes', JSON.stringify(saved));
+            applyTheme(next);
+        }
+
+        function applyTheme(theme) {
+            if (theme === 'dark') document.documentElement.removeAttribute('data-theme');
+            else document.documentElement.setAttribute('data-theme', theme);
+            updateThemeIcon(theme);
+        }
+
+        function updateThemeIcon(theme) {
+            const icon = themeBtn.querySelector('i');
+            icon.className = ''; icon.style.color = '';
+            switch (theme) {
+                case 'light': icon.className = 'fa-solid fa-sun'; icon.style.color = '#f59e0b'; break;
+                case 'matrix': icon.className = 'fa-solid fa-terminal'; icon.style.color = '#00ff41'; break;
+                case 'kids': icon.className = 'fa-solid fa-shapes'; icon.style.color = '#ef4444'; break;
+                case 'cyberpunk': icon.className = 'fa-solid fa-robot'; icon.style.color = '#00ffff'; break;
+                case 'nordic': icon.className = 'fa-regular fa-snowflake'; icon.style.color = '#88c0d0'; break;
+                case 'forest': icon.className = 'fa-solid fa-tree'; icon.style.color = '#95d5b2'; break;
+                default: icon.className = 'fa-solid fa-moon'; break;
+            }
+        }
+
+        themeBtn.addEventListener('click', toggleTheme);
+        loadTheme();
+
+        // ==========================================
+        // 2. LÓGICA DE LA HERRAMIENTA
+        // ==========================================
+        
+        let board = [];
+        let rows = 9;
+        let cols = 9;
+        let minesCount = 10;
+        let flagsCount = 0;
+        let gameOver = false;
+        let timerInterval = null;
+        let secondsElapsed = 0;
+        let firstClick = true;
+
+        const boardEl = document.getElementById('ms-board');
+        const faceEl = document.getElementById('ms-face');
+        const mineCountEl = document.getElementById('ms-mine-count');
+        const timerEl = document.getElementById('ms-timer');
+        const diffSelect = document.getElementById('ms-difficulty');
+
+        function initGame() {
+            const diff = diffSelect.value;
+            if (diff === 'easy') { rows = 9; cols = 9; minesCount = 10; }
+            else if (diff === 'medium') { rows = 16; cols = 16; minesCount = 40; }
+
+            gameOver = false;
+            firstClick = true;
+            flagsCount = 0;
+            secondsElapsed = 0;
+            clearInterval(timerInterval);
+            
+            updateMineCounter();
+            updateTimerDisplay();
+            faceEl.textContent = '🙂';
+
+
+            
+            // Build board safely with traditional loops to avoid any array reference issues
+            board = [];
+            for (let r = 0; r < rows; r++) {
+                let row = [];
+                for (let c = 0; c < cols; c++) {
+                    row.push({
+                        isMine: false,
+                        isRevealed: false,
+                        isFlagged: false,
+                        neighborMines: 0
+                    });
+                }
+                board.push(row);
+            }
+
+            renderBoard();
+        }
+
+        function updateMineCounter() {
+            const remaining = minesCount - flagsCount;
+            mineCountEl.textContent = String(remaining).padStart(3, '0');
+        }
+
+        function updateTimerDisplay() {
+            timerEl.textContent = String(secondsElapsed).padStart(3, '0');
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                secondsElapsed++;
+                if (secondsElapsed > 999) secondsElapsed = 999;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        function placeMines(firstR, firstC) {
+            let minesPlaced = 0;
+            while (minesPlaced < minesCount) {
+                const r = Math.floor(Math.random() * rows);
+                const c = Math.floor(Math.random() * cols);
+                // Don't place mine on first click or if already a mine
+                if (!board[r][c].isMine && !(r === firstR && c === firstC)) {
+                    board[r][c].isMine = true;
+                    minesPlaced++;
+                }
+            }
+            calculateNeighbors();
+        }
+
+        function calculateNeighbors() {
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (board[r][c].isMine) continue;
+                    let count = 0;
+                    for (let dr = -1; dr <= 1; dr++) {
+                        for (let dc = -1; dc <= 1; dc++) {
+                            const nr = r + dr;
+                            const nc = c + dc;
+                            if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && board[nr][nc].isMine) {
+                                count++;
+                            }
+                        }
+                    }
+                    board[r][c].neighborMines = count;
+                }
+            }
+        }
+
+        function renderBoard() {
+            let html = '';
+            for (let r = 0; r < rows; r++) {
+                html += '<tr>';
+                for (let c = 0; c < cols; c++) {
+                    const cell = board[r][c];
+                    let cls = 'ms-cell ' + (cell.isRevealed ? 'revealed' : 'unrevealed');
+                    
+                    let content = '';
+                    if (cell.isRevealed) {
+                        if (cell.isMine) {
+                            cls += ' mine';
+                            content = '<i class="fa-solid fa-bomb"></i>';
+                        } else if (cell.neighborMines > 0) {
+                            cls += ` ms-num-${cell.neighborMines}`;
+                            content = cell.neighborMines;
+                        }
+                    } else if (cell.isFlagged) {
+                        content = '<i class="fa-solid fa-flag" style="color: #ef4444;"></i>';
+                    }
+
+                    html += `<td class="${cls}" data-r="${r}" data-c="${c}">${content}</td>`;
+                }
+                html += '</tr>';
+            }
+            boardEl.innerHTML = html;
+        }
+
+        // Use event delegation for maximum performance and reliability
+        boardEl.addEventListener('mousedown', (e) => {
+            const target = e.target.closest('.ms-cell');
+            if (!target) return;
+            const r = parseInt(target.getAttribute('data-r'), 10);
+            const c = parseInt(target.getAttribute('data-c'), 10);
+            
+            if (e.button === 0) handleLeftClick(r, c);
+            else if (e.button === 2) handleRightClick(r, c);
+        });
+
+        boardEl.addEventListener('contextmenu', e => e.preventDefault());
+
+        function handleLeftClick(r, c) {
+            if (gameOver || board[r][c].isFlagged || board[r][c].isRevealed) return;
+            
+            if (firstClick) {
+                placeMines(r, c);
+                startTimer();
+                firstClick = false;
+            }
+
+            revealCell(r, c);
+            checkWinState();
+            renderBoard();
+        }
+
+        function handleRightClick(r, c) {
+            if (gameOver || board[r][c].isRevealed) return;
+            
+            board[r][c].isFlagged = !board[r][c].isFlagged;
+            if (board[r][c].isFlagged) flagsCount++;
+            else flagsCount--;
+            
+            updateMineCounter();
+            renderBoard();
+        }
+
+        function revealCell(r, c) {
+            if (r < 0 || r >= rows || c < 0 || c >= cols) return;
+            if (board[r][c].isRevealed || board[r][c].isFlagged) return;
+
+            board[r][c].isRevealed = true;
+
+            if (board[r][c].isMine) {
+                triggerGameOver(false);
+                return;
+            }
+
+            if (board[r][c].neighborMines === 0) {
+                for (let dr = -1; dr <= 1; dr++) {
+                    for (let dc = -1; dc <= 1; dc++) {
+                        revealCell(r + dr, c + dc);
+                    }
+                }
+            }
+        }
+
+        function triggerGameOver(win) {
+            gameOver = true;
+            clearInterval(timerInterval);
+            faceEl.textContent = win ? '😎' : '😵';
+
+            // Reveal all mines if lost
+            if (!win) {
+                for (let r = 0; r < rows; r++) {
+                    for (let c = 0; c < cols; c++) {
+                        if (board[r][c].isMine && !board[r][c].isFlagged) {
+                            board[r][c].isRevealed = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        function checkWinState() {
+            if (gameOver) return;
+            let unrevealedSafe = 0;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (!board[r][c].isMine && !board[r][c].isRevealed) {
+                        unrevealedSafe++;
+                    }
+                }
+            }
+            if (unrevealedSafe === 0) {
+                triggerGameOver(true);
+            }
+        }
+
+        // Initialize on load
+        initGame();
+
+    </script>
+</body>
+</html>
